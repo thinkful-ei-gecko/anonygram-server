@@ -9,6 +9,7 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const validateBearerToken = require('./bin/validateBearerToken');
 const errorHandler = require('./bin/errorHandler');
+const UploadService = require('./upload/upload-service');
 
 /*******************************************************************
   INIT
@@ -28,6 +29,7 @@ app.use(helmet());
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
+  UploadService.uploadImage('./src/upload/test.txt');
   return res.status(200).end();
 });
 
