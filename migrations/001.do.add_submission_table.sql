@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS submission;
+
 CREATE TABLE "submission" (
   "id" SERIAL PRIMARY KEY,
   "image_url" TEXT NOT NULL,

@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
+const knex = require('knex');
 const validateBearerToken = require('./bin/validateBearerToken');
 const errorHandler = require('./bin/errorHandler');
 
@@ -14,6 +15,10 @@ const errorHandler = require('./bin/errorHandler');
   INIT
 *******************************************************************/
 const app = express();
+const db = knex({
+  client: 'pg',
+  connection: process.env.DATABASE_URL,
+})
 
 /*******************************************************************
   MIDDLEWARE
@@ -21,6 +26,7 @@ const app = express();
 app.use(morgan(NODE_ENV === 'production' ? 'tiny' : 'common'));
 app.use(cors());
 app.use(helmet());
+app.set('db', db)
 // app.use(express.json());
 // app.use(validateBearerToken);
 
@@ -28,7 +34,7 @@ app.use(helmet());
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  return res.status(200).end();
+  return res.status(200).send('Running...');
 });
 
 /*******************************************************************
