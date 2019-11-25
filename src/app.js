@@ -1,20 +1,22 @@
 /*******************************************************************
   IMPORTS
 *******************************************************************/
-require('dotenv').config();
-const express = require('express');
-const morgan = require('morgan');
-const cors = require('cors');
-const helmet = require('helmet');
-const { NODE_ENV } = require('./config');
-const knex = require('knex');
-const validateBearerToken = require('./bin/validateBearerToken');
-const errorHandler = require('./bin/errorHandler');
+require('dotenv').config()
+const express = require('express')
+const morgan = require('morgan')
+const cors = require('cors')
+const helmet = require('helmet')
+const { NODE_ENV } = require('./config')
+const knex = require('knex')
+const validateBearerToken = require('./bin/validateBearerToken')
+const errorHandler = require('./bin/errorHandler')
+
+const submissionRouter = require('./submission/submission-router')
 
 /*******************************************************************
   INIT
 *******************************************************************/
-const app = express();
+const app = express()
 const db = knex({
   client: 'pg',
   connection: process.env.DATABASE_URL,
@@ -23,9 +25,9 @@ const db = knex({
 /*******************************************************************
   MIDDLEWARE
 *******************************************************************/
-app.use(morgan(NODE_ENV === 'production' ? 'tiny' : 'common'));
-app.use(cors());
-app.use(helmet());
+app.use(morgan(NODE_ENV === 'production' ? 'tiny' : 'common'))
+app.use(cors())
+app.use(helmet())
 app.set('db', db)
 // app.use(express.json());
 // app.use(validateBearerToken);
@@ -34,21 +36,23 @@ app.set('db', db)
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  return res.status(200).send('Running...');
-});
+  return res.status(200).send('Running...')
+})
+
+app.use('/api/submission', submissionRouter)
 
 /*******************************************************************
   ERROR HANDLING
 *******************************************************************/
 // Catch-all 404 handler
 app.use((req, res, next) => {
-  const err = new Error('Path Not Found');
-  err.status = 404;
-  next(err); // goes to errorHandler
-});
-app.use(errorHandler);
+  const err = new Error('Path Not Found')
+  err.status = 404
+  next(err) // goes to errorHandler
+})
+app.use(errorHandler)
 
 /*******************************************************************
   EXPORTS
 *******************************************************************/
-module.exports = app;
+module.exports = app
