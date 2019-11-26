@@ -39,7 +39,7 @@ submissionRouter.get('/', async (req, res, next) => {
     )
 
     // bundle all posts that are within ~20km of the req lat/long
-    if (distance < 200) {
+    if (distance < 20) {
       return submissionsByLocation.push(submission)
     }
   })
