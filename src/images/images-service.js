@@ -11,6 +11,24 @@ const ImagesService = {
     }
       
   },
+
+  getSingleSubmission: (db, id) => {
+    return db('submission')
+      .select('*')
+      .where({ id })
+      .first()
+  },
+
+  updateSingleSubmission: (db, id, data) => {
+    const karma_total = data.karma_total 
+    return db('submission')
+      .where({'id': id })
+      .update({'karma_total': karma_total})
+      .then(() => {
+        ImagesService.getSingleSubmission(db, id)
+      })
+  },
+
   createSubmission(db, submission) {
     return db
       .insert(submission)

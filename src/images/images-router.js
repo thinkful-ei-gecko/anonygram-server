@@ -75,4 +75,38 @@ imagesRouter
     }
   })
 
+imagesRouter
+  .use(express.json())
+  .route('/:submission_id')
+  .all(async (req, res, next) => {
+    const id = req.params.submission_id
+    const submission = await ImagesService.getSingleSubmission(req.app.get('db'), id)
+
+    if(!submission) {
+      return res.status(400).json({error: 'id does not exist'})
+    }
+
+    res.submission = submission
+    next()
+  })
+  .patch(async (req, res, next) => {
+    const { karma_total } = req.body
+
+    if(!karma_total) {
+      return res.status(400).json({error: 'karma_total is required'})
+    }
+
+    try {
+      const submissionData = {
+        ...res.submission,
+        karma_total
+      }
+  
+      await ImagesService.updateSingleSubmission(req.app.get('db'), res.submission.id, submissionData)
+      return res.status(204).end()
+    } catch(e) {
+      next(e)
+    }
+  })
+
 module.exports = imagesRouter
