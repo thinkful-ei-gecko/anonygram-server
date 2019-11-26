@@ -1,17 +1,18 @@
 /*******************************************************************
   IMPORTS
 *******************************************************************/
-require('dotenv').config()
-const express = require('express')
-const morgan = require('morgan')
-const cors = require('cors')
-const helmet = require('helmet')
-const { NODE_ENV } = require('./config')
+
+require('dotenv').config();
+const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+const helmet = require('helmet');
+const { NODE_ENV } = require('./config');
+const imagesRouter = require('./routers/images-router');
+const submissionRouter = require('./submission/submission-router')
 const knex = require('knex')
 const validateBearerToken = require('./bin/validateBearerToken')
 const errorHandler = require('./bin/errorHandler')
-
-const submissionRouter = require('./submission/submission-router')
 
 /*******************************************************************
   INIT
@@ -25,9 +26,13 @@ const db = knex({
 /*******************************************************************
   MIDDLEWARE
 *******************************************************************/
-app.use(morgan(NODE_ENV === 'production' ? 'tiny' : 'common'))
-app.use(cors())
-app.use(helmet())
+app.use(
+  morgan(NODE_ENV === 'production' ? 'tiny' : 'common', {
+    skip: () => NODE_ENV === 'test',
+  })
+);
+app.use(cors());
+app.use(helmet());
 app.set('db', db)
 // app.use(express.json());
 // app.use(validateBearerToken);
@@ -36,10 +41,12 @@ app.set('db', db)
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  return res.status(200).send('Running...')
+  return res.sendFile(__dirname + '/index.html');
+  // return res.status(200).end();
 })
 
 app.use('/api/submission', submissionRouter)
+app.use('/api/images/', imagesRouter);
 
 /*******************************************************************
   ERROR HANDLING
