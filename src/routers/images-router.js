@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const fs = require('fs');
 const UploadService = require('../services/upload-service');
 const imagesRouter = express.Router();
 
@@ -12,7 +13,8 @@ imagesRouter
     try {
       console.log(req.file);
       const { path, filename, mimetype } = req.file;
-      await UploadService.uploadFile(path, filename, mimetype);
+      const imageURL = await UploadService.uploadFile(path, filename, mimetype);
+      fs.unlinkSync(path); // remove temp file
       return res.redirect('/');
     } catch (error) {
       next(error);
