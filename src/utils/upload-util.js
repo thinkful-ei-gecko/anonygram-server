@@ -18,6 +18,7 @@ function uploadFile(path, filename, mimetype) {
 
   const uploadPromise = new Promise((resolve, reject) => {
     s3.upload(params, (error, data) => {
+      fs.unlinkSync(path); // remove temp file on our server after s3 has received it
       if (error) {
         reject(error);
       }

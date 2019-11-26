@@ -1,6 +1,5 @@
 const express = require('express');
 const multer = require('multer');
-const fs = require('fs');
 const { uploadFile } = require('../utils/upload-util');
 const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
@@ -13,9 +12,6 @@ imagesRouter.route('/').post(upload.single('someImage'), async (req, res, next) 
     console.log(req.file);
     const { path, filename, mimetype } = req.file;
     const image_url = await uploadFile(path, filename, mimetype);
-
-    fs.unlinkSync(path); // remove temp file
-
     const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
       image_url,
       karma_total: 0,
