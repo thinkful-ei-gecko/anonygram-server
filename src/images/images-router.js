@@ -12,7 +12,7 @@ imagesRouter
   .use(express.json())
   .route('/')
   .get(async (req, res, next) => {
-    const { sort, lat, lon } = req.body
+    const { sort, lat, lon } = req.query
 
     if (sort !== 'top' && sort !== 'new') {
       return res
