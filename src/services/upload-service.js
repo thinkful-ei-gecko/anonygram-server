@@ -8,19 +8,20 @@ const s3 = new aws.S3({
 });
 
 const UploadService = {
-  uploadImage(fileName) {
-    const contents = fs.readFileSync(fileName);
+  uploadFile(path, filename, mimetype) {
+    const contents = fs.readFileSync(path);
     const params = {
       Bucket: AWS_BUCKET,
-      Key: fileName,
+      Key: filename,
       Body: contents,
-      ContentType: 'image/jpeg',
+      ContentType: mimetype,
     };
     s3.upload(params, (error, data) => {
       if (error) {
         throw error;
       }
       console.log(`File uploaded successfully. ${data.Location}`);
+      return data.Location;
     });
   },
 };

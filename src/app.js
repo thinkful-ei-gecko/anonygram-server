@@ -9,7 +9,7 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const validateBearerToken = require('./bin/validateBearerToken');
 const errorHandler = require('./bin/errorHandler');
-const UploadService = require('./upload/upload-service');
+const imagesRouter = require('./routers/images-router');
 
 /*******************************************************************
   INIT
@@ -19,19 +19,23 @@ const app = express();
 /*******************************************************************
   MIDDLEWARE
 *******************************************************************/
-app.use(morgan(NODE_ENV === 'production' ? 'tiny' : 'common'));
+app.use(
+  morgan(NODE_ENV === 'production' ? 'tiny' : 'common', {
+    skip: () => NODE_ENV === 'test',
+  })
+);
 app.use(cors());
 app.use(helmet());
-// app.use(express.json());
-// app.use(validateBearerToken);
 
 /*******************************************************************
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  UploadService.uploadImage('./src/upload/test.txt');
-  return res.status(200).end();
+  return res.sendFile(__dirname + '/index.html');
+  // return res.status(200).end();
 });
+
+app.use('/api/images/', imagesRouter);
 
 /*******************************************************************
   ERROR HANDLING
