@@ -32,7 +32,13 @@ app.use(
 );
 app.use(
   cors({
-    origin: CLIENT_ORIGIN,
+    origin(origin, callback) {
+      if (origin === CLIENT_ORIGIN) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
   })
 );
 app.use(helmet());
@@ -42,8 +48,8 @@ app.set('db', db);
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  // return res.sendFile(__dirname + '/index.html');
-  return res.status(200).end();
+  return res.sendFile(__dirname + '/index.html');
+  // return res.status(200).end();
 });
 
 app.use('/api/images/', imagesRouter);
