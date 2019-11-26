@@ -15,13 +15,25 @@ function uploadFile(path, filename, mimetype) {
     Body: contents,
     ContentType: mimetype,
   };
-  s3.upload(params, (error, data) => {
-    if (error) {
-      throw error;
-    }
-    console.log(`File uploaded successfully. ${data.Location}`);
-    return data.Location;
+
+  const uploadPromise = new Promise((resolve, reject) => {
+    s3.upload(params, (error, data) => {
+      fs.unlinkSync(path); // remove temp file on our server after s3 has received it
+      if (error) {
+        reject(error);
+      }
+      resolve(data.Location);
+    });
   });
+
+  return uploadPromise
+    .then((dataLocation) => {
+      console.log(`File uploaded successfully. ${dataLocation}`);
+      return dataLocation;
+    })
+    .catch((error) => {
+      throw error;
+    });
 }
 
 module.exports = {
