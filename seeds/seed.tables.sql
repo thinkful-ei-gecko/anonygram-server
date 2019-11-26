@@ -18,7 +18,10 @@ VALUES ( 1,
 '36.102371', '-115.1745530', now() - INTERVAL '3 DAYS'),
 ( 5, 
   'https://cdn.pixabay.com/photo/2019/10/29/14/46/landscape-4587079__340.jpg', 100, 
-'39.739235', '-104.990250', now() - INTERVAL '4 DAYS');
+'39.739235', '-104.990250', now() - INTERVAL '4 DAYS'),
+( 6, 
+  'https://lh5.googleusercontent.com/p/AF1QipPByKR9mLR-6_vebNjxSWfJu9qcjdhkBfV-Yrq6=w408-h267-k-no', 2, 
+'28.005110', '-81.956520', now() - INTERVAL '4 DAYS');
 
 -- because we explicitly set the id fields
 -- update the sequencer for future automatic id setting
