@@ -9,7 +9,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV, CLIENT_ORIGIN, DATABASE_URL } = require('./config');
 const imagesRouter = require('./images/images-router');
-const submissionRouter = require('./submission/submission-router');
 const knex = require('knex');
 const validateBearerToken = require('./bin/validateBearerToken');
 const errorHandler = require('./bin/errorHandler');
@@ -47,7 +46,6 @@ app.get('/', (req, res) => {
   // return res.status(200).end();
 });
 
-app.use('/api/submission', submissionRouter);
 app.use('/api/images/', imagesRouter);
 
 /*******************************************************************
