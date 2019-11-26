@@ -7,7 +7,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
-const { NODE_ENV } = require('./config');
+const { NODE_ENV, CLIENT_ORIGIN, DATABASE_URL } = require('./config');
 const imagesRouter = require('./images/images-router');
 const knex = require('knex');
 const validateBearerToken = require('./bin/validateBearerToken');
@@ -19,7 +19,7 @@ const errorHandler = require('./bin/errorHandler');
 const app = express();
 const db = knex({
   client: 'pg',
-  connection: process.env.DATABASE_URL,
+  connection: DATABASE_URL,
 });
 
 /*******************************************************************
@@ -30,7 +30,11 @@ app.use(
     skip: () => NODE_ENV === 'test',
   })
 );
-app.use(cors());
+app.use(
+  cors({
+    origin: CLIENT_ORIGIN,
+  })
+);
 app.use(helmet());
 app.set('db', db);
 

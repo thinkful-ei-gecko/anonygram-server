@@ -1,4 +1,5 @@
 const express = require('express')
+const jsonParser = express.json()
 const multer = require('multer')
 const { uploadFile } = require('../utils/upload-util')
 const { getDistanceFromLatLonInKm } = require('../utils/location-util')
@@ -9,7 +10,6 @@ const UPLOAD_PATH = 'uploads/'
 const upload = multer({ dest: `${UPLOAD_PATH}` })
 
 imagesRouter
-  .use(express.json())
   .route('/')
   .get(async (req, res, next) => {
     const { sort, lat, lon } = req.query
@@ -54,29 +54,26 @@ imagesRouter
       next(e)
     }
   })
-  .post(upload.single('someImage'), async (req, res, next) => {
+  .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
-      console.log(req.file)
-      const { path, filename, mimetype } = req.file
-      const image_url = await uploadFile(path, filename, mimetype)
-      const newSubmission = await ImagesService.createSubmission(
-        req.app.get('db'),
-        {
-          image_url,
-          karma_total: 0,
-          latitude: '',
-          longitude: '',
-        }
-      )
+      console.log(req.file);
+      const { latitude, longitude } = req.body;
+      const { path, filename, mimetype } = req.file;
+      const image_url = await uploadFile(path, filename, mimetype);
+      const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
+        image_url,
+        latitude,
+        longitude,
+      });
 
-      return res.status(201).json(newSubmission)
+      return res.status(201).json(newSubmission);
     } catch (error) {
-      next(error)
+      next(error);
     }
-  })
+  });
 
 imagesRouter
-  .use(express.json())
+  .use(jsonParser)
   .route('/:submission_id')
   .all(async (req, res, next) => {
     const id = req.params.submission_id
