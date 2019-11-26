@@ -48,8 +48,8 @@ app.set('db', db);
   ROUTES
 *******************************************************************/
 app.get('/', (req, res) => {
-  return res.sendFile(__dirname + '/index.html');
-  // return res.status(200).end();
+  // return res.sendFile(__dirname + '/index.html');
+  return res.status(200).end();
 });
 
 app.use('/api/images/', imagesRouter);
