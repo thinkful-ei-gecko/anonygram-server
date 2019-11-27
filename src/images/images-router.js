@@ -3,6 +3,7 @@ const jsonParser = express.json();
 const multer = require('multer');
 const { uploadFile, imageFilter } = require('../utils/upload-util');
 const { getDistanceFromLatLonInKm } = require('../utils/location-util');
+const { checkNSFWLikely } = require('../utils/vision-util');
 const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
 const upload = multer({ dest: 'uploads/', fileFilter: imageFilter });
@@ -53,6 +54,12 @@ imagesRouter
       console.log(req.file);
       const { latitude, longitude } = req.body;
       const { path, filename, mimetype } = req.file;
+      const isNSFW = await checkNSFWLikely(path)
+      
+      if (isNSFW) {
+        return res.status(400).json({error: 'provided content does not meet community guidelines'})
+      }
+
       const image_url = await uploadFile(path, filename, mimetype);
       const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
         image_url,
