@@ -8,6 +8,11 @@ const s3 = new aws.S3({
 });
 
 function uploadFile(path, filename, mimetype) {
+  if (!AWS_ID || !AWS_SECRET || !AWS_BUCKET) {
+    fs.unlinkSync(path); // remove uploaded image from server
+    throw { message: 'AWS credentials not configured' };
+  }
+
   const contents = fs.readFileSync(path);
   const params = {
     Bucket: AWS_BUCKET,
