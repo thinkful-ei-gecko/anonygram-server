@@ -1,21 +1,31 @@
 require('dotenv').config()
+const vision = require('@google-cloud/vision')
 
-async function quickstart() {
-  
-  // Imports the Google Cloud client library
-  const vision = require('@google-cloud/vision');
-
-  const UPLOAD_PATH = 'uploads/'
-
+async function checkNSFWLikely(filePath) {
   // Creates a client
-  const visionClient = new vision
-    .ImageAnnotatorClient()
+  const visionClient = new vision.ImageAnnotatorClient()
+  const checkTypes = ['adult', 'spoof', 'medical', 'violence', 'racy']
 
-  // Performs label detection on the image file
-  const [result] = await visionClient.labelDetection(`${UPLOAD_PATH}/lev.png`);
-  const labels = result.labelAnnotations;
-  console.log('Labels:');
-  labels.forEach(label => console.log(label.description));
+  // Perform check of rating for unsafe categories
+  const [result] = await visionClient.safeSearchDetection(filePath)
+  const detections = result.safeSearchAnnotation
+
+  // reject image if any of the unsafe categories come back with
+  // POSSIBLE or greater odds of NSFW content
+  for (let i = 0; i < checkTypes.length; i++) {
+    if (
+      detections[checkTypes[i]] === 'POSSIBLE' ||
+      detections[checkTypes[i]] === 'LIKELY' ||
+      detections[checkTypes[i]] === 'VERY_LIKELY'
+    ) {
+      // console.log(`Failed type ${checkTypes[i]} with value of ${detections[checkTypes[i]]}`)
+      return true
+    }
+  }
+
+  return false
 }
 
-quickstart()
+module.exports = {
+  checkNSFWLikely
+}
