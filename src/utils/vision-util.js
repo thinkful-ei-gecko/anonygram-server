@@ -1,4 +1,3 @@
-require('dotenv').config()
 const vision = require('@google-cloud/vision')
 
 async function checkNSFWLikely(filePath) {
