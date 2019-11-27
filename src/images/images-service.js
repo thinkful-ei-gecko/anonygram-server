@@ -24,9 +24,7 @@ const ImagesService = {
     return db('submission')
       .where({'id': id })
       .update({'karma_total': karma_total})
-      .then(() => {
-        ImagesService.getSingleSubmission(db, id)
-      })
+      .then(() => ImagesService.getSingleSubmission(db, id))
   },
 
   createSubmission(db, submission) {
