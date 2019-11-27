@@ -99,8 +99,8 @@ imagesRouter
         karma_total
       }
   
-      await ImagesService.updateSingleSubmission(req.app.get('db'), res.submission.id, submissionData)
-      return res.status(204).end()
+      const updatedSubmission = await ImagesService.updateSingleSubmission(req.app.get('db'), res.submission.id, submissionData)
+      return res.status(200).json(updatedSubmission)
     } catch(e) {
       next(e)
     }
