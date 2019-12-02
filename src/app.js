@@ -9,6 +9,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV, CLIENT_ORIGIN, DATABASE_URL } = require('./config');
 const imagesRouter = require('./images/images-router');
+const usersRouter = require('./users/users-router');
 const knex = require('knex');
 const validateBearerToken = require('./bin/validateBearerToken');
 const errorHandler = require('./bin/errorHandler');
@@ -30,17 +31,17 @@ app.use(
     skip: () => NODE_ENV === 'test',
   })
 );
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (origin === CLIENT_ORIGIN) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-  })
-);
+// app.use(
+//   cors({
+//     origin(origin, callback) {
+//       if (origin === CLIENT_ORIGIN) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//   })
+// );
 app.use(helmet());
 app.set('db', db);
 
@@ -53,6 +54,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/images/', imagesRouter);
+app.use('/api/users/', usersRouter);
 
 /*******************************************************************
   ERROR HANDLING

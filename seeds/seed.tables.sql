@@ -52,8 +52,8 @@ SELECT setval('submission_id_seq', (SELECT MAX(id) from "submission"));
 INSERT INTO users ("username", "password")
  VALUES (
    'admin', 
-   -- password
-   '$2a$12$LYtNBy8xFQfDwU1CuyrCrO9UIOlxlosDiSZDnsCtvAyRLolHwaChe'
+   -- 'password' using salt of 12
+   '$2a$12$WtU7R79oJnrqDqVpGlDSyuvk5ELkkrk8uOZ3ki6CkRlP.SP6p6G8y'
    );
 
 COMMIT;
