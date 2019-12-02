@@ -7,23 +7,27 @@ const s3 = new aws.S3({
   secretAccessKey: AWS_SECRET,
 });
 
-function uploadFile(path, filename, mimetype) {
+function removeFile(filePath) {
+  fs.unlinkSync(filePath);
+}
+
+function uploadFile(fileContents, filePath, fileName, mimeType) {
   if (!AWS_ID || !AWS_SECRET || !AWS_BUCKET) {
-    fs.unlinkSync(path); // remove uploaded file from server
+    removeFile(filePath); // remove uploaded file from disk
     throw { message: 'AWS credentials not configured' };
   }
 
-  const contents = fs.readFileSync(path);
+  // const contents = fs.readFileSync(path);
   const params = {
     Bucket: AWS_BUCKET,
-    Key: filename,
-    Body: contents,
-    ContentType: mimetype,
+    Key: fileName,
+    Body: fileContents,
+    ContentType: mimeType,
   };
 
   const uploadPromise = new Promise((resolve, reject) => {
     s3.upload(params, (error, data) => {
-      fs.unlinkSync(path); // remove temp file on our server after s3 has received it
+      removeFile(filePath); // remove uploaded file from disk after s3 has received it
       if (error) {
         reject(error);
       }
@@ -50,5 +54,6 @@ function imageFilter(req, file, callback) {
 
 module.exports = {
   uploadFile,
+  removeFile,
   imageFilter,
 };
