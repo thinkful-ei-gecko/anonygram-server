@@ -8,6 +8,11 @@ const s3 = new aws.S3({
 });
 
 function uploadFile(path, filename, mimetype) {
+  if (!AWS_ID || !AWS_SECRET || !AWS_BUCKET) {
+    fs.unlinkSync(path); // remove uploaded file from server
+    throw { message: 'AWS credentials not configured' };
+  }
+
   const contents = fs.readFileSync(path);
   const params = {
     Bucket: AWS_BUCKET,
@@ -36,6 +41,14 @@ function uploadFile(path, filename, mimetype) {
     });
 }
 
+function imageFilter(req, file, callback) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+    return callback({ status: 415, message: 'File type is not an image' }, false);
+  }
+  callback(null, true);
+}
+
 module.exports = {
   uploadFile,
+  imageFilter,
 };

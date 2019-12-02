@@ -9,5 +9,5 @@ module.exports = {
     process.env.DATABASE_URL || 'postgresql://dunder_mifflin@localhost/anonygram',
   AWS_ID: process.env.AWS_ID,
   AWS_SECRET: process.env.AWS_SECRET,
-  AWS_BUCKET: process.env.AWS_BUCKET,
+  AWS_BUCKET: process.env.AWS_BUCKET
 };
