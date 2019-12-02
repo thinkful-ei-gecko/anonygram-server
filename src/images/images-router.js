@@ -1,7 +1,7 @@
 const express = require('express');
 const jsonParser = express.json();
 const multer = require('multer');
-const { uploadFile, imageFilter } = require('../utils/upload-util');
+const { uploadFile, removeFile, imageFilter } = require('../utils/upload-util');
 const { getDistanceFromLatLonInKm } = require('../utils/location-util');
 const { checkNSFWLikely } = require('../utils/vision-util');
 const imagesRouter = express.Router();
@@ -58,6 +58,7 @@ imagesRouter
       const isNSFW = await checkNSFWLikely(path);
 
       if (isNSFW) {
+        removeFile(path); // remove uploaded file from disk
         return res
           .status(400)
           .json({ error: 'provided content does not meet community guidelines' });
