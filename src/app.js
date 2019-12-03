@@ -32,17 +32,17 @@ app.use(
     skip: () => NODE_ENV === 'test',
   })
 );
-// app.use(
-//   cors({
-//     origin(origin, callback) {
-//       if (origin === CLIENT_ORIGIN) {
-//         callback(null, true);
-//       } else {
-//         callback(new Error('Not allowed by CORS'));
-//       }
-//     },
-//   })
-// );
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (origin === CLIENT_ORIGIN) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+  })
+);
 app.use(helmet());
 app.set('db', db);
 
