@@ -2,6 +2,7 @@ BEGIN;
 
 TRUNCATE "submission";
 TRUNCATE "users";
+TRUNCATE comments;
 
 INSERT INTO "submission" ("id", "image_url", "karma_total", "latitude", "longitude", "create_timestamp")
 VALUES 
