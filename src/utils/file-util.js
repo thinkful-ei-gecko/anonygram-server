@@ -45,7 +45,7 @@ function uploadFile(fileContents, filePath, fileName, mimeType) {
     });
 }
 
-function imageFilter(req, file, callback) {
+function acceptImagesOnly(req, file, callback) {
   if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
     return callback({ status: 415, message: 'File type is not an image' }, false);
   }
@@ -55,5 +55,5 @@ function imageFilter(req, file, callback) {
 module.exports = {
   uploadFile,
   removeFile,
-  imageFilter,
+  acceptImagesOnly,
 };

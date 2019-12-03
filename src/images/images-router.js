@@ -1,17 +1,17 @@
-const express = require('express')
-const jsonParser = express.json()
-const multer = require('multer')
-const { uploadFile, removeFile, imageFilter } = require('../utils/upload-util')
-const { getDistanceFromLatLonInKm } = require('../utils/location-util')
-const { checkNSFWLikely } = require('../utils/vision-util')
+const express = require('express');
+const jsonParser = express.json();
+const multer = require('multer');
+const { uploadFile, removeFile, acceptImagesOnly } = require('../utils/file-util');
+const { getDistanceFromLatLonInKm } = require('../utils/location-util');
+const { checkNSFWLikely } = require('../utils/vision-util');
 const {
   getDefaultPlaceData,
   getImageByReference,
-} = require('../utils/places-util')
-const imagesRouter = express.Router()
-const ImagesService = require('./images-service')
-const upload = multer({ dest: 'uploads/', fileFilter: imageFilter })
-const sharp = require('sharp')
+} = require('../utils/places-util');
+const imagesRouter = express.Router();
+const ImagesService = require('./images-service');
+const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
+const sharp = require('sharp');
 
 imagesRouter
   .route('/')
@@ -105,10 +105,10 @@ imagesRouter
   })
   .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
-      console.log(req.file)
-      const { latitude, longitude } = req.body
-      const { path, filename } = req.file
-      const isNSFW = await checkNSFWLikely(path)
+      console.log(req.file);
+      const { image_text, latitude, longitude } = req.body;
+      const { path, filename } = req.file;
+      const isNSFW = await checkNSFWLikely(path);
 
       if (isNSFW) {
         removeFile(path) // remove uploaded file from disk
@@ -121,22 +121,15 @@ imagesRouter
         .rotate() // auto-rotate based on EXIF metadata
         .resize({ width: 1200, withoutEnlargement: true }) // limit max width
         .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
-        .toBuffer() // returns a Promise<Buffer>
+        .toBuffer(); // returns a Promise<Buffer>
 
-      const image_url = await uploadFile(
-        imageData,
-        path,
-        filename,
-        'image/jpeg'
-      )
-      const newSubmission = await ImagesService.createSubmission(
-        req.app.get('db'),
-        {
-          image_url,
-          latitude,
-          longitude,
-        }
-      )
+      const image_url = await uploadFile(imageData, path, filename, 'image/jpeg');
+      const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
+        image_url,
+        image_text,
+        latitude,
+        longitude,
+      });
 
       return res.status(201).json(newSubmission)
     } catch (error) {
