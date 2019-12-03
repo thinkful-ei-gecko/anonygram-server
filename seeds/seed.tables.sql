@@ -1,6 +1,7 @@
 BEGIN;
 
 TRUNCATE "submission";
+TRUNCATE "users";
 
 
 INSERT INTO "submission" ("id", "image_url", "karma_total", "latitude", "longitude", "create_timestamp")
@@ -47,5 +48,12 @@ VALUES ( 1,
 -- because we explicitly set the id fields
 -- update the sequencer for future automatic id setting
 SELECT setval('submission_id_seq', (SELECT MAX(id) from "submission"));
+
+INSERT INTO users ("username", "password")
+ VALUES (
+   'admin', 
+   -- 'password' using salt of 12
+   '$2a$12$WtU7R79oJnrqDqVpGlDSyuvk5ELkkrk8uOZ3ki6CkRlP.SP6p6G8y'
+   );
 
 COMMIT;
