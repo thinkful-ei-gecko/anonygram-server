@@ -2,13 +2,17 @@ const express = require('express')
 const authRouter = express.Router()
 const AuthService = require('./auth-service')
 const protectedWithJWT = require('../middleware/token-auth')
+const xss = require('xss')
 
 authRouter.route('/').post(express.json(), async (req, res, next) => {
-  const { username, password } = req.body
+  let { username, password } = req.body
 
   if (!username || !password) {
     return res.status(400).json({ error: 'username and password are required' })
   }
+
+  username = xss(username)
+  password = xss(password)
 
   const user = await AuthService.getUser(req.app.get('db'), username)
   if (!user) {
