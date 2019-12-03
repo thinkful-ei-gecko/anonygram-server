@@ -1,12 +1,12 @@
 const express = require('express');
 const jsonParser = express.json();
 const multer = require('multer');
-const { uploadFile, removeFile, imageFilter } = require('../utils/upload-util');
+const { uploadFile, removeFile, acceptImagesOnly } = require('../utils/file-util');
 const { getDistanceFromLatLonInKm } = require('../utils/location-util');
 const { checkNSFWLikely } = require('../utils/vision-util');
 const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
-const upload = multer({ dest: 'uploads/', fileFilter: imageFilter });
+const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
 const sharp = require('sharp');
 
 imagesRouter
