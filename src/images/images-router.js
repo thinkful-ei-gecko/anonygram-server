@@ -53,7 +53,7 @@ imagesRouter
   .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
       console.log(req.file);
-      const { latitude, longitude } = req.body;
+      const { image_text, latitude, longitude } = req.body;
       const { path, filename } = req.file;
       const isNSFW = await checkNSFWLikely(path);
 
@@ -73,6 +73,7 @@ imagesRouter
       const image_url = await uploadFile(imageData, path, filename, 'image/jpeg');
       const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
         image_url,
+        image_text,
         latitude,
         longitude,
       });
