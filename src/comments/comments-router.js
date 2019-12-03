@@ -4,6 +4,7 @@ const xss = require('xss');
 const CommentsService = require('./comments-service');
 const commentsRouter = express.Router();
 const jsonParser = express.json();
+const protectedWithJWT = require('../middleware/token-auth');
 
 const sanitizedComment = (comment) => ({
   id: comment.id,
@@ -14,10 +15,11 @@ const sanitizedComment = (comment) => ({
 });
 
 /*****************************************************************
-  /comments
+  /api/comments
 ******************************************************************/
 commentsRouter
   .route('/')
+  .all(protectedWithJWT)
   .get((req, res, next) => {
     CommentsService.getAllComments(req.app.get('db'))
       .then((comments) => {
@@ -50,11 +52,11 @@ commentsRouter
   });
 
 /*****************************************************************
-  /comments/:comment_id
+  /api/comments/:comment_id
 ******************************************************************/
 commentsRouter
   .route('/:comment_id')
-  .all((req, res, next) => {
+  .all(protectedWithJWT, (req, res, next) => {
     CommentsService.getComment(req.app.get('db'), req.params.comment_id).then(
       (comment) => {
         if (!comment) {
@@ -85,17 +87,12 @@ commentsRouter
     if (numberOfValues === 0) {
       return res.status(400).json({
         error: {
-          message:
-            'Request body must contain either text or comment_timestamp',
+          message: 'Request body must contain either text or comment_timestamp',
         },
       });
     }
 
-    CommentsService.updatecomment(
-      req.app.get('db'),
-      req.params.comment_id,
-      updateFields
-    )
+    CommentsService.updatecomment(req.app.get('db'), req.params.comment_id, updateFields)
       .then(() => {
         return res.status(204).end();
       })
