@@ -1,14 +1,11 @@
 const CommentsService = {
-  getAllComments(db) {
-    return db.select('*').from('comments');
-  },
-
-  getComment(db, id) {
+  getAllComments(db, submission_id) {
     return db
-      .select('*')
+      .select('comment_text', 'comment_timestamp', 'username')
       .from('comments')
-      .where({ id })
-      .first();
+      .join('submission', 'submission.id', 'comments.submission_id')
+      .join('users', 'users.id', 'comments.user_id')
+      .where({ submission_id });
   },
 
   createComment(db, comment) {
@@ -19,18 +16,6 @@ const CommentsService = {
       .then((rows) => {
         return rows[0];
       });
-  },
-
-  updateComment(db, id, updateFields) {
-    return db('comments')
-      .where({ id })
-      .update(updateFields);
-  },
-
-  deleteComment(db, id) {
-    return db('comments')
-      .where({ id })
-      .delete();
   },
 };
 
