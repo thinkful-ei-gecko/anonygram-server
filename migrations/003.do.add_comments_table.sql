@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 CREATE TABLE comments (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     comment_text TEXT NOT NULL,
