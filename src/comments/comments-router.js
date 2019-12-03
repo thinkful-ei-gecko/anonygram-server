@@ -1,6 +1,6 @@
 const express = require('express');
 const xss = require('xss');
-const ImagesService = require('./images-service');
+const ImagesService = require('../images/images-service');
 const CommentsService = require('./comments-service');
 const commentsRouter = express.Router();
 const jsonParser = express.json();
