@@ -54,7 +54,7 @@ imagesRouter
     try {
       console.log(req.file);
       const { latitude, longitude } = req.body;
-      const { path, filename, mimetype } = req.file;
+      const { path, filename } = req.file;
       const isNSFW = await checkNSFWLikely(path);
 
       if (isNSFW) {
@@ -66,10 +66,11 @@ imagesRouter
 
       const imageData = await sharp(path)
         .rotate() // auto-rotate based on EXIF metadata
-        .webp({ reductionEffort: 6 }) // highest compression method
+        .resize({ width: 1200, withoutEnlargement: true }) // limit max width
+        .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
         .toBuffer(); // returns a Promise<Buffer>
 
-      const image_url = await uploadFile(imageData, path, filename, mimetype);
+      const image_url = await uploadFile(imageData, path, filename, 'image/jpeg');
       const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
         image_url,
         latitude,
