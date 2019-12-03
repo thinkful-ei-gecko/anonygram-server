@@ -34,7 +34,10 @@ commentsRouter
   })
   .get(async (req, res, next) => {
     try {
-      const comments = await CommentsService.getAllComments(req.app.get('db'));
+      const comments = await CommentsService.getAllComments(
+        req.app.get('db'),
+        res.submission.id
+      );
       return res.json(comments.map(sanitizedComment));
     } catch (error) {
       next(error);
