@@ -7,7 +7,7 @@ const jsonParser = express.json();
 const protectedWithJWT = require('../middleware/token-auth');
 
 const sanitizedComment = (comment) => ({
-  id: comment.id,
+  comment_id: comment.comment_id,
   comment_text: xss(comment.comment_text),
   comment_timestamp: comment.comment_timestamp,
   submission_id: comment.submission_id,

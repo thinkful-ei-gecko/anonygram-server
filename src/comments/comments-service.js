@@ -1,7 +1,7 @@
 const CommentsService = {
   getAllComments(db, submission_id) {
     return db
-      .select('comment_text', 'comment_timestamp', 'username')
+      .select('comment_id', 'comment_text', 'comment_timestamp', 'submission_id', 'user_id')
       .from('comments')
       .join('submission', 'submission.id', 'comments.submission_id')
       .join('users', 'users.id', 'comments.user_id')

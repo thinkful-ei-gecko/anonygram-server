@@ -1,5 +1,5 @@
 CREATE TABLE comments (
-    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    comment_id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     comment_text TEXT NOT NULL,
     comment_timestamp TIMESTAMP DEFAULT now() NOT NULL,
     submission_id INTEGER
