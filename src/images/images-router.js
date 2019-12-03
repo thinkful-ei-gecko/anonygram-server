@@ -28,6 +28,10 @@ imagesRouter
       return res
         .status(400)
         .json({ error: 'lat and lon parameters are required' })
+    } else if (!parseFloat(lat) || !parseFloat(lon)) {
+      return res
+        .status(400)
+        .json({ error: 'lat and lon parameters are invalid' })
     }
 
     try {
