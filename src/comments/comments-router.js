@@ -19,7 +19,7 @@ const sanitizedComment = (comment) => ({
 ******************************************************************/
 commentsRouter
   .route('/:submission_id')
-  .all(protectedWithJWT, async (req, res, next) => {
+  .all(async (req, res, next) => {
     const submission = await ImagesService.getSingleSubmission(
       req.app.get('db'),
       req.params.submission_id
@@ -43,7 +43,7 @@ commentsRouter
       next(error);
     }
   })
-  .post(jsonParser, async (req, res, next) => {
+  .post(protectedWithJWT, jsonParser, async (req, res, next) => {
     const { comment_text, user_id, comment_timestamp } = req.body;
     const comment = { comment_text, user_id };
 
