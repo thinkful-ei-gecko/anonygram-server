@@ -1,22 +1,26 @@
-const express = require('express');
-const jsonParser = express.json();
-const multer = require('multer');
-const { uploadFile, removeFile, acceptImagesOnly } = require('../utils/file-util');
-const { getDistanceFromLatLonInKm } = require('../utils/location-util');
-const { checkNSFWLikely } = require('../utils/vision-util');
+const express = require('express')
+const jsonParser = express.json()
+const multer = require('multer')
+const {
+  uploadFile,
+  removeFile,
+  acceptImagesOnly,
+} = require('../utils/file-util')
+const { getDistanceFromLatLonInKm } = require('../utils/location-util')
+const { checkNSFWLikely } = require('../utils/vision-util')
 const {
   getDefaultPlaceData,
   getImageByReference,
-} = require('../utils/places-util');
-const imagesRouter = express.Router();
-const ImagesService = require('./images-service');
-const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
-const sharp = require('sharp');
+} = require('../utils/places-util')
+const imagesRouter = express.Router()
+const ImagesService = require('./images-service')
+const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly })
+const sharp = require('sharp')
 
 imagesRouter
   .route('/')
   .get(async (req, res, next) => {
-    const { sort, lat, lon } = req.query
+    const { sort, lat, lon, page } = req.query
 
     if (sort !== 'top' && sort !== 'new') {
       return res
@@ -34,36 +38,45 @@ imagesRouter
         .json({ error: 'lat and lon parameters are invalid' })
     }
 
+    if (!!page && !parseInt(page)) {
+      return res.status(400).json({ error: 'page parameter is invalid' })
+    }
+
     try {
       // compare a current lat/lon center against all submissions in the database
       // return only those within a 20km radius
 
-      const submissions = await ImagesService.getSubmissionsSorted(
+      const submissions = await ImagesService.getSubmissions(
         req.app.get('db'),
-        sort
+        sort,
+        page || null
       )
 
       const submissionsByLocation = []
       // filter all submissions for their distance against the request lat/lon
       if (!!submissions.length) {
         submissions.forEach(submission => {
-        let distance = getDistanceFromLatLonInKm(
-          lat,
-          lon,
-          submission['latitude'],
-          submission['longitude']
-        )
+          let distance = getDistanceFromLatLonInKm(
+            lat,
+            lon,
+            submission['latitude'],
+            submission['longitude']
+          )
 
-        // bundle all posts that are within ~20km of the req lat/long
-        if (distance < 20) {
-          return submissionsByLocation.push(submission)
-        }
-      })
-    }
-      
+          // bundle all posts that are within ~20km of the req lat/long
+          if (distance < 20) {
+            return submissionsByLocation.push(submission)
+          }
+        })
+      }
+
       // if we do not have any data, we are using Google to make some
       // submissions that are nearby the requested lat/lon
-      if (!submissionsByLocation.length) {
+      // also only do this when no data exists at all
+      // pagination can technically otherwise cause it to seem like
+      // no data artificially
+
+      if (!submissionsByLocation.length && (!page || (!!page && page === 1))) {
         // make a request to get place coordinates and the photo_reference
         let defaultPlaces = await getDefaultPlaceData(lat, lon)
         await Promise.all(
@@ -89,7 +102,7 @@ imagesRouter
             }
           })
         )
-        const googleSubmissions = await ImagesService.getSubmissionsSorted(
+        const googleSubmissions = await ImagesService.getSubmissions(
           req.app.get('db'),
           sort
         )
@@ -109,10 +122,10 @@ imagesRouter
   })
   .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
-      console.log(req.file);
-      const { image_text, latitude, longitude } = req.body;
-      const { path, filename } = req.file;
-      const isNSFW = await checkNSFWLikely(path);
+      console.log(req.file)
+      const { image_text, latitude, longitude } = req.body
+      const { path, filename } = req.file
+      const isNSFW = await checkNSFWLikely(path)
 
       if (isNSFW) {
         removeFile(path) // remove uploaded file from disk
@@ -125,15 +138,23 @@ imagesRouter
         .rotate() // auto-rotate based on EXIF metadata
         .resize({ width: 1200, withoutEnlargement: true }) // limit max width
         .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
-        .toBuffer(); // returns a Promise<Buffer>
+        .toBuffer() // returns a Promise<Buffer>
 
-      const image_url = await uploadFile(imageData, path, filename, 'image/jpeg');
-      const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
-        image_url,
-        image_text,
-        latitude,
-        longitude,
-      });
+      const image_url = await uploadFile(
+        imageData,
+        path,
+        filename,
+        'image/jpeg'
+      )
+      const newSubmission = await ImagesService.createSubmission(
+        req.app.get('db'),
+        {
+          image_url,
+          image_text,
+          latitude,
+          longitude,
+        }
+      )
 
       return res.status(201).json(newSubmission)
     } catch (error) {
