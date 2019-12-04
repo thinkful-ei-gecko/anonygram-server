@@ -6,7 +6,6 @@ const {
   removeFile,
   acceptImagesOnly,
 } = require('../utils/file-util');
-const { getDistanceFromLatLonInKm } = require('../utils/location-util');
 const { checkNSFWLikely } = require('../utils/vision-util');
 const {
   getDefaultPlaceData,
