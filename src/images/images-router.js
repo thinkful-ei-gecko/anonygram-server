@@ -19,7 +19,7 @@ const sharp = require('sharp');
 imagesRouter
   .route('/')
   .get(async (req, res, next) => {
-    const { sort, lat, lon } = req.query;
+    const { sort, lat, lon, page } = req.query;
 
     if (sort !== 'top' && sort !== 'new') {
       return res
@@ -35,6 +35,10 @@ imagesRouter
       return res
         .status(400)
         .json({ error: 'lat and lon parameters are invalid' });
+    }
+
+    if (!!page && !parseInt(page)) {
+      return res.status(400).json({ error: 'page parameter is invalid' });
     }
 
     try {
@@ -80,11 +84,12 @@ imagesRouter
             }
           })
         );
-        const googleSubmissions = await ImagesService.getSubmissionsSorted(
+        const googleSubmissions = await ImagesService.getSubmissions(
           req.app.get('db'),
           parseFloat(lat),
           parseFloat(lon),
-          sort
+          sort,
+          page
         );
 
         // if somehow even Google has no nearby locations with images
