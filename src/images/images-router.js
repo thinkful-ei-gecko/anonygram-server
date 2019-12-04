@@ -76,7 +76,7 @@ imagesRouter
       // pagination can technically otherwise cause it to seem like
       // no data artificially
 
-      if (!submissionsByLocation.length && (!page || (!!page && page === 1))) {
+      if (!submissionsByLocation.length && (!page || (!!page && parseInt(page) === 1))) {
         // make a request to get place coordinates and the photo_reference
         let defaultPlaces = await getDefaultPlaceData(lat, lon)
         await Promise.all(
