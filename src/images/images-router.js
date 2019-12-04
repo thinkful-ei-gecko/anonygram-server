@@ -110,9 +110,19 @@ imagesRouter
   .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
       console.log(req.file);
-      const { image_text, latitude, longitude } = req.body;
+      let { image_text, latitude, longitude } = req.body;
       const { path, filename } = req.file;
       const isNSFW = await checkNSFWLikely(path);
+
+      if (!latitude || !longitude) {
+        return res
+          .status(400)
+          .json({ error: 'latitude and longitude parameters are required' })
+      } else if (!parseFloat(latitude) || !parseFloat(longitude)) {
+        return res
+          .status(400)
+          .json({ error: 'latitude and longitude parameters are invalid' })
+      }
 
       if (isNSFW) {
         removeFile(path) // remove uploaded file from disk
@@ -120,6 +130,16 @@ imagesRouter
           error: 'provided content does not meet community guidelines',
         })
       }
+
+      // we need to obfuscate coordinates so that users in homes or
+      // private places are not easily identified
+
+      const latArr = latitude.split('.')
+      const lonArr = longitude.split('.')
+      latArr[1] = latArr[1].substring(0, 3)
+      lonArr[1] = lonArr[1].substring(0, 3)
+      latitude = latArr.join('.')
+      longitude = lonArr.join('.')
 
       const imageData = await sharp(path)
         .rotate() // auto-rotate based on EXIF metadata
