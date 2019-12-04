@@ -102,10 +102,12 @@ imagesRouter
       const isNSFW = await checkNSFWLikely(path);
 
       if (!latitude || !longitude) {
+        removeFromDisk(path);
         return res
           .status(400)
           .json({ error: 'latitude and longitude parameters are required' });
       } else if (!parseFloat(latitude) || !parseFloat(longitude)) {
+        removeFromDisk(path);
         return res
           .status(400)
           .json({ error: 'latitude and longitude parameters are invalid' });
