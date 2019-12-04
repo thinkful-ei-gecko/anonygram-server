@@ -7,13 +7,42 @@ const s3 = new aws.S3({
   secretAccessKey: AWS_SECRET,
 });
 
-function removeFile(filePath) {
+function removeFromDisk(filePath) {
   fs.unlinkSync(filePath);
 }
 
-function uploadFile(fileContents, filePath, fileName, mimeType) {
+function removeFromS3(s3ObjectKey) {
   if (!AWS_ID || !AWS_SECRET || !AWS_BUCKET) {
-    removeFile(filePath); // remove uploaded file from disk
+    throw { message: 'AWS credentials not configured' };
+  }
+
+  const params = {
+    Bucket: AWS_BUCKET,
+    Key: s3ObjectKey,
+  };
+
+  const removalPromise = new Promise((resolve, reject) => {
+    s3.deleteObject(params, (error, data) => {
+      if (error) {
+        reject(error);
+      }
+      resolve();
+    });
+  });
+
+  return removalPromise
+    .then(() => {
+      console.log(`File deleted successfully. file: ${s3ObjectKey}`);
+      return;
+    })
+    .catch((error) => {
+      throw error;
+    });
+}
+
+function uploadToS3(fileContents, filePath, fileName, mimeType) {
+  if (!AWS_ID || !AWS_SECRET || !AWS_BUCKET) {
+    removeFromDisk(filePath); // remove uploaded file from disk
     throw { message: 'AWS credentials not configured' };
   }
 
@@ -27,7 +56,7 @@ function uploadFile(fileContents, filePath, fileName, mimeType) {
 
   const uploadPromise = new Promise((resolve, reject) => {
     s3.upload(params, (error, data) => {
-      removeFile(filePath); // remove uploaded file from disk after s3 has received it
+      removeFromDisk(filePath); // remove uploaded file from disk after s3 has received it
       if (error) {
         reject(error);
       }
@@ -53,7 +82,8 @@ function acceptImagesOnly(req, file, callback) {
 }
 
 module.exports = {
-  uploadFile,
-  removeFile,
+  uploadToS3,
+  removeFromDisk,
+  removeFromS3,
   acceptImagesOnly,
 };

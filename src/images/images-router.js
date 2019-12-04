@@ -2,15 +2,13 @@ const express = require('express');
 const jsonParser = express.json();
 const multer = require('multer');
 const {
-  uploadFile,
-  removeFile,
+  uploadToS3,
+  removeFromS3,
+  removeFromDisk,
   acceptImagesOnly,
 } = require('../utils/file-util');
 const { checkNSFWLikely } = require('../utils/vision-util');
-const {
-  getDefaultPlaceData,
-  getImageByReference,
-} = require('../utils/places-util');
+const { getDefaultPlaceData, getImageByReference } = require('../utils/places-util');
 const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
 const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
@@ -22,19 +20,13 @@ imagesRouter
     const { sort, lat, lon, page } = req.query;
 
     if (sort !== 'top' && sort !== 'new') {
-      return res
-        .status(400)
-        .json({ error: 'Invalid value provided for sort param' });
+      return res.status(400).json({ error: 'Invalid value provided for sort param' });
     }
 
     if (!lat || !lon) {
-      return res
-        .status(400)
-        .json({ error: 'lat and lon parameters are required' });
+      return res.status(400).json({ error: 'lat and lon parameters are required' });
     } else if (!parseFloat(lat) || !parseFloat(lon)) {
-      return res
-        .status(400)
-        .json({ error: 'lat and lon parameters are invalid' });
+      return res.status(400).json({ error: 'lat and lon parameters are invalid' });
     }
 
     if (!!page && !parseInt(page)) {
@@ -62,7 +54,7 @@ imagesRouter
         // make a request to get place coordinates and the photo_reference
         let defaultPlaces = await getDefaultPlaceData(lat, lon);
         await Promise.all(
-          defaultPlaces.results.map(async location => {
+          defaultPlaces.results.map(async (location) => {
             // if the location has a photos attribute, grab the reference and
             // make a separate request to retrieve the hosted image URL from
             // the reference ID
@@ -77,10 +69,7 @@ imagesRouter
               };
 
               // insert these new submissions into the database
-              await ImagesService.createSubmission(
-                req.app.get('db'),
-                submission
-              );
+              await ImagesService.createSubmission(req.app.get('db'), submission);
             }
           })
         );
@@ -123,7 +112,7 @@ imagesRouter
       }
 
       if (isNSFW) {
-        removeFile(path); // remove uploaded file from disk
+        removeFromDisk(path); // remove uploaded file from disk
         return res.status(400).json({
           error: 'provided content does not meet community guidelines',
         });
@@ -145,21 +134,13 @@ imagesRouter
         .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
         .toBuffer(); // returns a Promise<Buffer>
 
-      const image_url = await uploadFile(
-        imageData,
-        path,
-        filename,
-        'image/jpeg'
-      );
-      const newSubmission = await ImagesService.createSubmission(
-        req.app.get('db'),
-        {
-          image_url,
-          image_text,
-          latitude,
-          longitude,
-        }
-      );
+      const image_url = await uploadToS3(imageData, path, filename, 'image/jpeg');
+      const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
+        image_url,
+        image_text,
+        latitude,
+        longitude,
+      });
 
       return res.status(201).json(newSubmission);
     } catch (error) {
@@ -172,10 +153,7 @@ imagesRouter
   .route('/:submission_id')
   .all(async (req, res, next) => {
     const id = req.params.submission_id;
-    const submission = await ImagesService.getSingleSubmission(
-      req.app.get('db'),
-      id
-    );
+    const submission = await ImagesService.getSingleSubmission(req.app.get('db'), id);
 
     if (!submission) {
       return res.status(400).json({ error: 'id does not exist' });
@@ -205,6 +183,17 @@ imagesRouter
       return res.status(200).json(updatedSubmission);
     } catch (e) {
       next(e);
+    }
+  })
+  .delete(async (req, res, next) => {
+    try {
+      const url = res.submission.image_url;
+      const s3ObjectKey = url.substring(url.lastIndexOf('/') + 1);
+      await ImagesService.deleteSubmission(req.app.get('db'), res.submission.id);
+      await removeFromS3(s3ObjectKey);
+      return res.status(204).end();
+    } catch (error) {
+      next(error);
     }
   });
 

@@ -59,9 +59,15 @@ const ImagesService = {
       .insert(submission)
       .into('submission')
       .returning('*')
-      .then(rows => {
+      .then((rows) => {
         return rows[0];
       });
+  },
+
+  deleteSubmission(db, id) {
+    return db('submission')
+      .where({ id })
+      .del();
   },
 };
 
