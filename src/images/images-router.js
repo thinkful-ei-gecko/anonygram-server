@@ -7,7 +7,6 @@ const {
   removeFromDisk,
   acceptImagesOnly,
 } = require('../utils/file-util');
-const { getDistanceFromLatLonInKm } = require('../utils/location-util');
 const { checkNSFWLikely } = require('../utils/vision-util');
 const { getDefaultPlaceData, getImageByReference } = require('../utils/places-util');
 const imagesRouter = express.Router();
@@ -35,40 +34,23 @@ imagesRouter
     }
 
     try {
-      // compare a current lat/lon center against all submissions in the database
-      // return only those within a 20km radius
-
-      const submissions = await ImagesService.getSubmissions(
+      const submissionsByLocation = await ImagesService.getSubmissions(
         req.app.get('db'),
+        parseFloat(lat),
+        parseFloat(lon),
         sort,
-        page || null
+        page
       );
-
-      const submissionsByLocation = [];
-      // filter all submissions for their distance against the request lat/lon
-      if (!!submissions.length) {
-        submissions.forEach((submission) => {
-          let distance = getDistanceFromLatLonInKm(
-            lat,
-            lon,
-            submission['latitude'],
-            submission['longitude']
-          );
-
-          // bundle all posts that are within ~20km of the req lat/long
-          if (distance < 20) {
-            return submissionsByLocation.push(submission);
-          }
-        });
-      }
 
       // if we do not have any data, we are using Google to make some
       // submissions that are nearby the requested lat/lon
       // also only do this when no data exists at all
       // pagination can technically otherwise cause it to seem like
       // no data artificially
-
-      if (!submissionsByLocation.length && (!page || (!!page && parseInt(page) === 1))) {
+      if (
+        !submissionsByLocation.length &&
+        (!page || (!!page && parseInt(page) === 1))
+      ) {
         // make a request to get place coordinates and the photo_reference
         let defaultPlaces = await getDefaultPlaceData(lat, lon);
         await Promise.all(
@@ -93,7 +75,10 @@ imagesRouter
         );
         const googleSubmissions = await ImagesService.getSubmissions(
           req.app.get('db'),
-          sort
+          parseFloat(lat),
+          parseFloat(lon),
+          sort,
+          page
         );
 
         // if somehow even Google has no nearby locations with images

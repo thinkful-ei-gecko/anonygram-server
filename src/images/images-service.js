@@ -1,33 +1,42 @@
+const { getDistanceFromLatLonInKm } = require('../utils/location-util');
+
 const ImagesService = {
-  getSubmissions: (db, sort = 'new', page = null) => {
+  getSubmissions: (db, lat, lon, sort = 'new', page = null) => {
+    const sortBy = sort === 'new' ? 'create_timestamp' : 'karma_total';
     const PAGINATION_VALUE = 10;
-    const pageNum = parseInt(page) - 1;
-    if (!page) {
-      if (sort === 'new') {
-        return db('submission')
-          .select('*')
-          .orderBy('create_timestamp', 'DESC');
-      } else {
-        return db('submission')
-          .select('*')
-          .orderBy('karma_total', 'DESC');
-      }
-    } else {
-      console.log(PAGINATION_VALUE * pageNum);
-      if (sort === 'new') {
-        return db('submission')
-          .select('*')
-          .limit(PAGINATION_VALUE)
-          .offset(PAGINATION_VALUE * pageNum)
-          .orderBy('create_timestamp', 'DESC');
-      } else {
-        return db('submission')
-          .select('*')
-          .limit(PAGINATION_VALUE)
-          .offset(PAGINATION_VALUE * pageNum)
-          .orderBy('karma_total', 'DESC');
-      }
-    }
+
+    return db('submission')
+      .select('*')
+      .orderBy(sortBy, 'DESC')
+      .then(results => {
+        const filtered = [];
+        results.forEach(submission => {
+          // select all from submission where the computed value of each
+          // row's latitude and longitude is less than 20
+          let radius = getDistanceFromLatLonInKm(
+            parseInt(lat),
+            parseInt(lon),
+            parseInt(submission.latitude),
+            parseInt(submission.longitude)
+          );
+          if (radius < 20) {
+            filtered.push(submission);
+          }
+        });
+        return filtered;
+      })
+      .then(filteredRes => {
+        // if the page arg is set we want to then only return a limited
+        // set of the overall qualifying submissions
+        if (page !== null) {
+          const paginatedRes = filteredRes.slice(
+            (page - 1) * PAGINATION_VALUE,
+            PAGINATION_VALUE * page
+          );
+          return paginatedRes;
+        }
+        return filteredRes;
+      });
   },
 
   getSingleSubmission: (db, id) => {
