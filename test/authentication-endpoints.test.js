@@ -4,7 +4,7 @@ const AuthService = require('../src/auth/auth-service');
 const TestHelpers = require('./test-helpers');
 
 describe('Authentication Endpoints', function() {
-  let db = app.get('db');
+  let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const testUser = mockUsers[0];
   const endpointPath = '/api/auth';

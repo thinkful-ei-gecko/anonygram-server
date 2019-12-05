@@ -1,6 +1,16 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+function setupTestDB(app) {
+  let knex = require('knex');
+  let db = knex({
+    client: 'pg',
+    connection: process.env.TEST_DB_URL,
+  });
+  app.set('db', db);
+  return db;
+}
+
 function mockUsers() {
   return [
     {
@@ -16,12 +26,41 @@ function mockUsers() {
   ];
 }
 
+function mockSubmissions() {
+  // id SERIAL PRIMARY KEY,
+  // image_url TEXT NOT NULL,
+  // image_text TEXT,
+  // karma_total INTEGER DEFAULT 0,
+  // latitude TEXT NOT NULL,
+  // longitude TEXT NOT NULL,
+  return [
+    {
+      id: 1,
+      image_url: 'https://anonygram-images.s3.amazonaws.com/test1',
+      image_text: 'image text',
+      latitude: '30.063210',
+      longitude: '-95.441330',
+    },
+    {
+      id: 2,
+      image_url: 'https://anonygram-images.s3.amazonaws.com/test2',
+      image_text: 'image text',
+      latitude: '30.063210',
+      longitude: '-95.441330',
+    },
+  ];
+}
+
 function seedUsers(db, users) {
   const usersWithEncryptedPasswords = users.map((user) => ({
     ...user,
     password: bcrypt.hashSync(user.password, 1),
   }));
   return db.insert(usersWithEncryptedPasswords).into('users');
+}
+
+function seedSubmissions(db, submissions) {
+  return db.insert(submissions).into('submission');
 }
 
 function truncateAllTables(db) {
@@ -43,8 +82,11 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
 }
 
 module.exports = {
+  setupTestDB,
   mockUsers,
+  mockSubmissions,
   seedUsers,
+  seedSubmissions,
   truncateAllTables,
   makeAuthHeader,
 };
