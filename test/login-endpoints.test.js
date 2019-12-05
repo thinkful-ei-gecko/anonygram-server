@@ -3,7 +3,7 @@ const app = require('../src/app');
 const AuthService = require('../src/auth/auth-service');
 const TestHelpers = require('./test-helpers');
 
-describe('Authentication Endpoints', function() {
+describe('Login Endpoints', function() {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const testUser = mockUsers[0];
