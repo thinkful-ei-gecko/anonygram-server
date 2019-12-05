@@ -13,6 +13,7 @@ const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
 const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
 const sharp = require('sharp');
+const protectedWithJWT = require('../middleware/token-auth');
 
 imagesRouter
   .route('/')
@@ -47,10 +48,7 @@ imagesRouter
       // also only do this when no data exists at all
       // pagination can technically otherwise cause it to seem like
       // no data artificially
-      if (
-        !submissionsByLocation.length &&
-        (!page || (!!page && parseInt(page) === 1))
-      ) {
+      if (!submissionsByLocation.length && (!page || (!!page && parseInt(page) === 1))) {
         // make a request to get place coordinates and the photo_reference
         let defaultPlaces = await getDefaultPlaceData(lat, lon);
         await Promise.all(
@@ -164,7 +162,7 @@ imagesRouter
     res.submission = submission;
     next();
   })
-  .patch(async (req, res, next) => {
+  .patch(protectedWithJWT, async (req, res, next) => {
     const { karma_total } = req.body;
 
     if (!karma_total) {
@@ -187,7 +185,12 @@ imagesRouter
       next(e);
     }
   })
-  .delete(async (req, res, next) => {
+  .delete(protectedWithJWT, async (req, res, next) => {
+    // TODO: enable this once submissions table is updated to store user_id
+    // if (res.submission.user_id !== req.user.id) {
+    //   return res.status(401).json({ error: 'unauthorized request' });
+    // }
+
     try {
       const url = res.submission.image_url;
       const s3ObjectKey = url.substring(url.lastIndexOf('/') + 1);
