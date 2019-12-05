@@ -1,5 +1,6 @@
 const express = require('express');
 const jsonParser = express.json();
+const xss = require('xss');
 const multer = require('multer');
 const {
   uploadToS3,
@@ -137,7 +138,7 @@ imagesRouter
       const image_url = await uploadToS3(imageData, path, filename, 'image/jpeg');
       const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
         image_url,
-        image_text,
+        image_text: xss(image_text),
         latitude,
         longitude,
       });
