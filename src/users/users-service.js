@@ -1,44 +1,44 @@
 const bcryptjs = require('bcryptjs');
-const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/
+const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&])[\S]+/;
 
 const UsersService = {
-  hashPass: password => {
-    return bcryptjs.hash(password, 12)
+  hashPass: (password) => {
+    return bcryptjs.hash(password, 12);
   },
 
-  validatePassword: password => {
+  validatePassword: (password) => {
     if (password.length < 8) {
-      return 'password must be longer than 8 characters'
+      return 'password must be longer than 8 characters';
     }
 
     if (password.length > 50) {
-      return 'password must be less than 50 characters'
+      return 'password must be less than 50 characters';
     }
 
     if (password.trim() !== password) {
-      return 'password must not begin or end with whitespace'
+      return 'password must not begin or end with whitespace';
     }
 
     if (!REGEX_UPPER_LOWER_NUMBER_SPECIAL.test(password)) {
-      return 'password must contain one upper case, lower case, number and special character'
+      return 'password must contain one upper case, lower case, number and special character';
     }
 
-    return null
+    return null;
   },
 
-  validateUserName: username => {
+  validateUserName: (username) => {
     if (username.length < 8 || username.length > 50 || username.trim() !== username) {
-      return -1
+      return -1;
     }
 
-    return null
+    return null;
   },
 
   validateNewUser: (db, username) => {
     return db('users')
       .select('*')
       .where({ username })
-      .first()
+      .first();
   },
 
   createNewUser: (db, username, password) => {
@@ -47,10 +47,10 @@ const UsersService = {
       .then(() => {
         return db('users')
           .select('id', 'username')
-          .where({username})
-          .first()
-      })
-  }
+          .where({ username })
+          .first();
+      });
+  },
 };
 
 module.exports = UsersService;
