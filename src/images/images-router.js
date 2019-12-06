@@ -19,7 +19,7 @@ const protectedWithJWT = require('../middleware/token-auth');
 imagesRouter
   .route('/')
   .get(async (req, res, next) => {
-    const { sort, lat, lon, page } = req.query;
+    const { sort, lat, lon, page, distance } = req.query;
 
     if (sort !== 'top' && sort !== 'new') {
       return res.status(400).json({ error: 'Invalid value provided for sort param' });
@@ -35,13 +35,18 @@ imagesRouter
       return res.status(400).json({ error: 'page parameter is invalid' });
     }
 
+    if (!!distance && !parseInt(distance)) {
+      return res.status(400).json({ error: 'distance parameter is invalid' });
+    }
+
     try {
       const submissionsByLocation = await ImagesService.getSubmissions(
         req.app.get('db'),
         parseFloat(lat),
         parseFloat(lon),
         sort,
-        page
+        page,
+        distance
       );
 
       // if we do not have any data, we are using Google to make some
@@ -77,7 +82,8 @@ imagesRouter
           parseFloat(lat),
           parseFloat(lon),
           sort,
-          page
+          page,
+          distance
         );
 
         // if somehow even Google has no nearby locations with images

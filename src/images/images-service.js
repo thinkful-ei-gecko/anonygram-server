@@ -1,7 +1,7 @@
 const { getDistanceFromLatLonInKm } = require('../utils/location-util');
 
 const ImagesService = {
-  getSubmissions: (db, lat, lon, sort = 'new', page = null) => {
+  getSubmissions: (db, lat, lon, sort = 'new', page = null, distance = 20) => {
     const sortBy = sort === 'new' ? 'create_timestamp' : 'karma_total';
     const PAGINATION_VALUE = 10;
 
@@ -19,7 +19,7 @@ const ImagesService = {
             parseInt(submission.latitude),
             parseInt(submission.longitude)
           );
-          if (radius < 20) {
+          if (radius < distance) {
             filtered.push(submission);
           }
         });
