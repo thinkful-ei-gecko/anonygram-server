@@ -3,7 +3,8 @@ BEGIN;
 TRUNCATE
   comments,
   users,
-  submission;
+  submission
+  RESTART IDENTITY CASCADE;
 
 INSERT INTO submission ("id", "image_url", "karma_total", "latitude", "longitude", "create_timestamp")
 VALUES 

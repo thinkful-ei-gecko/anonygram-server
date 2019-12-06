@@ -84,7 +84,8 @@ function truncateAllTables(db) {
     `TRUNCATE
       comments,
       users,
-      submission;`
+      submission   
+      RESTART IDENTITY CASCADE;`
   );
 }
 
