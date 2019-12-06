@@ -11,6 +11,20 @@ function setupTestDB(app) {
   return db;
 }
 
+function coordinatesGreenwich() {
+  return {
+    lat: '51.4825766',
+    lon: '-0.0076589',
+  };
+}
+
+function coordinatesQuito() {
+  return {
+    lat: '-0.180653',
+    lon: '-78.467834',
+  };
+}
+
 function mockUsers() {
   return [
     {
@@ -36,17 +50,19 @@ function mockSubmissions() {
   return [
     {
       id: 1,
-      image_url: 'https://anonygram-images.s3.amazonaws.com/test1',
+      image_url: 'https://anonygram-images.s3.amazonaws.com/greenwich',
       image_text: 'image text',
-      latitude: '30.063210',
-      longitude: '-95.441330',
+      latitude: coordinatesGreenwich().lat,
+      longitude: coordinatesGreenwich().lon,
+      // create_timestamp: now() - INTERVAL '1 DAYS';
     },
     {
       id: 2,
-      image_url: 'https://anonygram-images.s3.amazonaws.com/test2',
+      image_url: 'https://anonygram-images.s3.amazonaws.com/quito',
       image_text: 'image text',
-      latitude: '30.063210',
-      longitude: '-95.441330',
+      latitude: coordinatesQuito().lat,
+      longitude: coordinatesQuito().lon,
+      // create_timestamp: now() - INTERVAL '1 DAYS';
     },
   ];
 }
@@ -83,6 +99,8 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
 
 module.exports = {
   setupTestDB,
+  coordinatesGreenwich,
+  coordinatesQuito,
   mockUsers,
   mockSubmissions,
   seedUsers,
