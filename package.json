@@ -23,7 +23,6 @@
     "@google-cloud/vision": "^1.7.2",
     "aws-sdk": "^2.579.0",
     "bcryptjs": "^2.4.3",
-    "chai-fs": "^2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^8.1.0",
     "express": "^4.17.1",
@@ -41,6 +40,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-fs": "^2.0.0",
     "mocha": "^6.2.0",
     "nodemon": "^1.19.2",
     "postgrator-cli": "^3.3.0",
