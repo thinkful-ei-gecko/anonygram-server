@@ -54,6 +54,14 @@ describe.only('Images Endpoints', () => {
           .get(`${endpointPath}${query}`)
           .expect(400, { error: expectedMsg4 });
       });
+
+      const expectedMsg5 = 'distance parameter is invalid';
+      it(`responds 400 "${expectedMsg5}" when distance param is invalid`, () => {
+        const query = `/?sort=new&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&page=1&distance=string`;
+        return supertest(app)
+          .get(`${endpointPath}${query}`)
+          .expect(400, { error: expectedMsg5 });
+      });
     });
 
     context('Given Valid Query Params', () => {
@@ -61,11 +69,38 @@ describe.only('Images Endpoints', () => {
         TestHelpers.seedSubmissions(db, mockSubmissions)
       );
 
-      it('responds 200 and an array of submissions near the queried lat/lon', () => {
+      it('responds 200 and an array of submissions within 20km of the queried lat/lon (Greenwich)', () => {
         const query = `/?sort=new&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}`;
         return supertest(app)
           .get(`${endpointPath}${query}`)
-          .expect(200);
+          .expect(200)
+          .then((res) => {
+            const [greenwichSubmission] = res.body;
+            chai.expect(res.body.length).to.eql(1);
+            chai.expect(greenwichSubmission.id).to.eql(1);
+          });
+      });
+
+      it('responds 200 and an array of submissions within 20km of the queried lat/lon (Quito)', () => {
+        const query = `/?sort=new&lat=${coordinatesQuito.lat}&lon=${coordinatesQuito.lon}`;
+        return supertest(app)
+          .get(`${endpointPath}${query}`)
+          .expect(200)
+          .then((res) => {
+            const [quitoSubmission] = res.body;
+            chai.expect(res.body.length).to.eql(1);
+            chai.expect(quitoSubmission.id).to.eql(2);
+          });
+      });
+
+      it('responds 200 and an array of submissions within 20000km of the queried lat/lon (Greenwich)', () => {
+        const query = `/?sort=new&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&distance=20000`;
+        return supertest(app)
+          .get(`${endpointPath}${query}`)
+          .expect(200)
+          .then((res) => {
+            chai.expect(res.body.length).to.eql(2);
+          });
       });
     });
   });
