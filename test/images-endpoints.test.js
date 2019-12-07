@@ -76,9 +76,9 @@ describe('Images Endpoints', () => {
           .get(`${endpointPath}${query}`)
           .expect(200)
           .then((res) => {
-            const [greenwichSubmission] = res.body;
+            const [greenwich] = res.body;
             chai.expect(res.body.length).to.eql(1);
-            chai.expect(greenwichSubmission.id).to.eql(1);
+            chai.expect(greenwich.image_text).to.eql('greenwich');
           });
       });
 
@@ -88,9 +88,10 @@ describe('Images Endpoints', () => {
           .get(`${endpointPath}${query}`)
           .expect(200)
           .then((res) => {
-            const [quitoSubmission] = res.body;
-            chai.expect(res.body.length).to.eql(1);
-            chai.expect(quitoSubmission.id).to.eql(2);
+            const [quito1, quito2] = res.body;
+            chai.expect(res.body.length).to.eql(2);
+            chai.expect(quito1.image_text).to.eql('quito2');
+            chai.expect(quito2.image_text).to.eql('quito1');
           });
       });
 
@@ -100,29 +101,39 @@ describe('Images Endpoints', () => {
           .get(`${endpointPath}${query}`)
           .expect(200)
           .then((res) => {
-            chai.expect(res.body.length).to.eql(2);
+            chai.expect(res.body.length).to.eql(3);
           });
       });
 
-      // TODO: sort by new
-      it.skip('responds 200 and an array of submissions sorted by timestamp', () => {
+      it('responds 200 and an array of submissions sorted by timestamp', () => {
         const query = `/?sort=new&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&distance=20000`;
         return supertest(app)
           .get(`${endpointPath}${query}`)
           .expect(200)
           .then((res) => {
+            chai.expect(res.body.length).to.eql(3);
 
+            chai.expect(res.body[0].image_text).to.eql('quito2');
+            chai.expect(res.body[1].image_text).to.eql('quito1');
+            chai.expect(res.body[2].image_text).to.eql('greenwich');
           });
       });
 
-      // TODO: sort by top
-      it.skip('responds 200 and an array of submissions sorted by karma_total', () => {
+      it('responds 200 and an array of submissions sorted by karma_total', () => {
         const query = `/?sort=top&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&distance=20000`;
         return supertest(app)
           .get(`${endpointPath}${query}`)
           .expect(200)
           .then((res) => {
+            chai.expect(res.body.length).to.eql(3);
+            
+            chai.expect(res.body[0].image_text).to.eql('quito2');
+            chai.expect(res.body[1].image_text).to.eql('greenwich');
+            chai.expect(res.body[2].image_text).to.eql('quito1');
 
+            chai.expect(res.body[0].karma_total).to.eql(99);
+            chai.expect(res.body[1].karma_total).to.eql(20);
+            chai.expect(res.body[2].karma_total).to.eql(5);
           });
       });
     });

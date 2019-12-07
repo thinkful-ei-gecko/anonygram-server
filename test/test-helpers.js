@@ -41,28 +41,36 @@ function mockUsers() {
 }
 
 function mockSubmissions() {
-  // id SERIAL PRIMARY KEY,
-  // image_url TEXT NOT NULL,
-  // image_text TEXT,
-  // karma_total INTEGER DEFAULT 0,
-  // latitude TEXT NOT NULL,
-  // longitude TEXT NOT NULL,
+  const now = new Date();
+  const twoDaysAgo = new Date(new Date().setDate(now.getDate() - 2));
+  const fiveDaysAgo = new Date(new Date().setDate(now.getDate() - 5));
   return [
     {
       id: 1,
       image_url: 'https://anonygram-images.s3.amazonaws.com/greenwich',
-      image_text: 'image text',
+      image_text: 'greenwich',
+      karma_total: 20,
       latitude: coordinatesGreenwich().lat,
       longitude: coordinatesGreenwich().lon,
-      // create_timestamp: now() - INTERVAL '1 DAYS';
+      create_timestamp: fiveDaysAgo,
     },
     {
       id: 2,
-      image_url: 'https://anonygram-images.s3.amazonaws.com/quito',
-      image_text: 'image text',
+      image_url: 'https://anonygram-images.s3.amazonaws.com/quito1',
+      image_text: 'quito1',
+      karma_total: 5,
       latitude: coordinatesQuito().lat,
       longitude: coordinatesQuito().lon,
-      // create_timestamp: now() - INTERVAL '1 DAYS';
+      create_timestamp: twoDaysAgo,
+    },
+    {
+      id: 3,
+      image_url: 'https://anonygram-images.s3.amazonaws.com/quito2',
+      image_text: 'quito2',
+      karma_total: 99,
+      latitude: coordinatesQuito().lat,
+      longitude: coordinatesQuito().lon,
+      create_timestamp: now,
     },
   ];
 }
