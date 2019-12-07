@@ -32,7 +32,7 @@ function removeFromS3(s3ObjectKey) {
 
   return removalPromise
     .then(() => {
-      console.log(`File deleted successfully. file: ${s3ObjectKey}`);
+      // console.log(`File deleted successfully. file: ${s3ObjectKey}`);
       return;
     })
     .catch((error) => {
@@ -66,7 +66,7 @@ function uploadToS3(fileContents, filePath, fileName, mimeType) {
 
   return uploadPromise
     .then((dataLocation) => {
-      console.log(`File uploaded successfully. ${dataLocation}`);
+      // console.log(`File uploaded successfully. ${dataLocation}`);
       return dataLocation;
     })
     .catch((error) => {

@@ -101,7 +101,7 @@ imagesRouter
   })
   .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
     try {
-      console.log(req.file);
+      // console.log(req.file);
       let { image_text, latitude, longitude } = req.body;
       const { path, filename } = req.file;
       const isNSFW = await checkNSFWLikely(path);
