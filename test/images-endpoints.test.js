@@ -1,7 +1,8 @@
 const app = require('../src/app');
 const TestHelpers = require('./test-helpers');
+const { removeFromS3 } = require('../src/utils/file-util');
 
-describe.only('Images Endpoints', () => {
+describe('Images Endpoints', () => {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const mockSubmissions = TestHelpers.mockSubmissions();
@@ -102,6 +103,28 @@ describe.only('Images Endpoints', () => {
             chai.expect(res.body.length).to.eql(2);
           });
       });
+
+      // TODO: sort by new
+      it.skip('responds 200 and an array of submissions sorted by timestamp', () => {
+        const query = `/?sort=new&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&distance=20000`;
+        return supertest(app)
+          .get(`${endpointPath}${query}`)
+          .expect(200)
+          .then((res) => {
+
+          });
+      });
+
+      // TODO: sort by top
+      it.skip('responds 200 and an array of submissions sorted by karma_total', () => {
+        const query = `/?sort=top&lat=${coordinatesGreenwich.lat}&lon=${coordinatesGreenwich.lon}&distance=20000`;
+        return supertest(app)
+          .get(`${endpointPath}${query}`)
+          .expect(200)
+          .then((res) => {
+
+          });
+      });
     });
   });
 
@@ -109,7 +132,79 @@ describe.only('Images Endpoints', () => {
     POST /api/images
   ******************************************************************/
   describe(`POST ${endpointPath}`, () => {
-    //
+    const uploadsPath = './uploads';
+    const imagePath = './test/fixtures/yikyak.png';
+    const NSFWimagePath = './test/fixtures/sausage.jpg';
+
+    afterEach('should remove uploaded file from disk', () => {
+      chai.expect(uploadsPath).to.be.a.directory().and.empty;
+    });
+
+    context('Given Invalid Submission', () => {
+      const expectedMsg1 = 'latitude and longitude parameters are required';
+      it(`responds 400 "${expectedMsg1}" when lat and lon is not included in the submission`, () => {
+        return supertest(app)
+          .post(endpointPath)
+          .attach('someImage', imagePath)
+          .expect(400, { error: expectedMsg1 });
+      });
+
+      const expectedMsg2 = 'latitude and longitude parameters are invalid';
+      it(`responds 400 "${expectedMsg2}" when the submission's lat and lon are invalid`, () => {
+        return supertest(app)
+          .post(endpointPath)
+          .field('latitude', 'string')
+          .field('longitude', 'string')
+          .attach('someImage', imagePath)
+          .expect(400, { error: expectedMsg2 });
+      });
+
+      const expectedMsg3 = 'provided content does not meet community guidelines';
+      it(`responds 400 "${expectedMsg3}" when submission image is potentially NSFW`, () => {
+        return supertest(app)
+          .post(endpointPath)
+          .field('latitude', coordinatesGreenwich.lat)
+          .field('longitude', coordinatesGreenwich.lon)
+          .attach('someImage', NSFWimagePath)
+          .expect(400, { error: expectedMsg3 });
+      });
+    });
+
+    context('Given Valid Submission', () => {
+      let s3ObjectKey = '';
+      afterEach('remove image submission from s3', async () => {
+        await removeFromS3(s3ObjectKey);
+      });
+
+      it('responds 201 and the submission JSON when ', async () => {
+        const testCaption = 'test caption';
+        const REGEX_BASE_IMAGE_URL = /^https:\/\/anonygram-images\.s3\.amazonaws\.com\//i;
+        let truncLat = coordinatesGreenwich.lat.split('.');
+        truncLat = `${truncLat[0]}.${truncLat[1].substring(0, 3)}`;
+        let truncLon = coordinatesGreenwich.lon.split('.');
+        truncLon = `${truncLon[0]}.${truncLon[1].substring(0, 3)}`;
+
+        return await supertest(app)
+          .post(endpointPath)
+          .field('latitude', coordinatesGreenwich.lat)
+          .field('longitude', coordinatesGreenwich.lon)
+          .field('image_text', testCaption)
+          .attach('someImage', imagePath)
+          .expect(201)
+          .then(async (res) => {
+            // set key for s3 cleanup after tests are done
+            const url = await res.body.image_url;
+            s3ObjectKey = url.substring(url.lastIndexOf('/') + 1);
+
+            chai.expect(res.body.id).to.eql(1);
+            chai.expect(url).to.match(REGEX_BASE_IMAGE_URL);
+            chai.expect(res.body.image_text).to.eql(testCaption);
+            chai.expect(res.body.karma_total).to.eql(0);
+            chai.expect(res.body.latitude).to.eql(truncLat);
+            chai.expect(res.body.longitude).to.eql(truncLon);
+          });
+      });
+    });
   });
 
   /*****************************************************************
