@@ -172,11 +172,11 @@ describe('Images Endpoints', () => {
 
     context('Given Valid Submission', () => {
       let s3ObjectKey = '';
-      afterEach('remove image submission from s3', async () => {
+      afterEach('cleanup image submission from s3', async () => {
         await removeFromS3(s3ObjectKey);
       });
 
-      it('responds 201 and the submission JSON when ', async () => {
+      it('responds 201 and the submission JSON (image_url on s3, truncated lat/lon, karma 0, id 1)', async () => {
         const testCaption = 'test caption';
         const REGEX_BASE_IMAGE_URL = /^https:\/\/anonygram-images\.s3\.amazonaws\.com\//i;
         let truncLat = coordinatesGreenwich.lat.split('.');
