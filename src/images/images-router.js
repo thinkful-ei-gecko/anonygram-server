@@ -157,7 +157,6 @@ imagesRouter
   });
 
 imagesRouter
-  .use(jsonParser)
   .route('/:submission_id')
   .all(async (req, res, next) => {
     const id = req.params.submission_id;
@@ -171,32 +170,26 @@ imagesRouter
     next();
   })
   .patch(protectedWithJWT, async (req, res, next) => {
-    const { karma_total } = req.body;
     const upvoter = req.user;
-
-    if (!karma_total) {
-      return res.status(400).json({ error: 'karma_total is required' });
-    }
 
     if (upvoter.karma_balance === 0) {
       return res.status(403).json({ error: 'karma_balance is 0' });
     }
 
     try {
-      const submissionData = {
-        ...res.submission,
-        karma_total,
-      };
-
+      // credit submission's karma total
+      const currKarmaTotal = res.submission.karma_total;
       const updatedSubmission = await ImagesService.updateSingleSubmission(
         req.app.get('db'),
         res.submission.id,
-        submissionData
+        { karma_total: currKarmaTotal + 1 }
       );
 
       // debit upvoter's karma balance
       const currKarmaBalance = upvoter.karma_balance;
-      await UsersService.updateUser(req.app.get('db'), upvoter.username, { karma_balance: currKarmaBalance - 1 });
+      await UsersService.updateUser(req.app.get('db'), upvoter.username, {
+        karma_balance: currKarmaBalance - 1,
+      });
 
       return res.status(200).json(updatedSubmission);
     } catch (e) {

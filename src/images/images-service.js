@@ -8,9 +8,9 @@ const ImagesService = {
     return db('submission')
       .select('*')
       .orderBy(sortBy, 'DESC')
-      .then(results => {
+      .then((results) => {
         const filtered = [];
-        results.forEach(submission => {
+        results.forEach((submission) => {
           // select all from submission where the computed value of each
           // row's latitude and longitude is less than 20
           let radius = getDistanceFromLatLonInKm(
@@ -25,7 +25,7 @@ const ImagesService = {
         });
         return filtered;
       })
-      .then(filteredRes => {
+      .then((filteredRes) => {
         // if the page arg is set we want to then only return a limited
         // set of the overall qualifying submissions
         if (page !== null) {
@@ -46,11 +46,10 @@ const ImagesService = {
       .first();
   },
 
-  updateSingleSubmission: (db, id, data) => {
-    const karma_total = data.karma_total;
+  updateSingleSubmission: (db, id, updateFields) => {
     return db('submission')
-      .where({ id: id })
-      .update({ karma_total: karma_total })
+      .where({ id })
+      .update(updateFields)
       .then(() => ImagesService.getSingleSubmission(db, id));
   },
 
