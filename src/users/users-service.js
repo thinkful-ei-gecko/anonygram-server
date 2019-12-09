@@ -51,6 +51,12 @@ const UsersService = {
           .first();
       });
   },
+
+  updateUser(db, username, updateFields) {
+    return db('users')
+      .where({ username })
+      .update(updateFields);
+  },
 };
 
 module.exports = UsersService;

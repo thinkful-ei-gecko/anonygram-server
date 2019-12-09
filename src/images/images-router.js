@@ -15,6 +15,7 @@ const ImagesService = require('./images-service');
 const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
 const sharp = require('sharp');
 const protectedWithJWT = require('../middleware/token-auth');
+const UsersService = require('../users/users-service');
 
 imagesRouter
   .route('/')
@@ -171,9 +172,14 @@ imagesRouter
   })
   .patch(protectedWithJWT, async (req, res, next) => {
     const { karma_total } = req.body;
+    const upvoter = req.user;
 
     if (!karma_total) {
       return res.status(400).json({ error: 'karma_total is required' });
+    }
+
+    if (upvoter.karma_balance === 0) {
+      return res.status(403).json({ error: 'karma_balance is 0' });
     }
 
     try {
@@ -187,6 +193,11 @@ imagesRouter
         res.submission.id,
         submissionData
       );
+
+      // debit upvoter's karma balance
+      const currKarmaBalance = upvoter.karma_balance;
+      await UsersService.updateUser(req.app.get('db'), upvoter.username, { karma_balance: currKarmaBalance - 1 });
+
       return res.status(200).json(updatedSubmission);
     } catch (e) {
       next(e);
