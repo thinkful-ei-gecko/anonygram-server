@@ -34,6 +34,7 @@ authRouter
         id: user.id,
         username,
       })}`,
+      karma: user.karma_balance,
     });
   })
   .put(protectedWithJWT, (req, res) => {
