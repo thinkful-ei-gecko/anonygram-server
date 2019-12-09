@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const app = require('../src/app');
 const AuthService = require('../src/auth/auth-service');
 const TestHelpers = require('./test-helpers');
