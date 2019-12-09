@@ -1,6 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const now = new Date();
+const twoDaysAgo = new Date(new Date().setDate(now.getDate() - 2));
+const fiveDaysAgo = new Date(new Date().setDate(now.getDate() - 5));
+
 function setupTestDB(app) {
   let knex = require('knex');
   let db = knex({
@@ -41,9 +45,6 @@ function mockUsers() {
 }
 
 function mockSubmissions() {
-  const now = new Date();
-  const twoDaysAgo = new Date(new Date().setDate(now.getDate() - 2));
-  const fiveDaysAgo = new Date(new Date().setDate(now.getDate() - 5));
   return [
     {
       id: 1,
@@ -75,6 +76,47 @@ function mockSubmissions() {
   ];
 }
 
+function mockComments() {
+  
+  return [
+    {
+      comment_id: '3d6e2144-57bd-43a7-a8f0-d690a5e491d0',
+      comment_text: 'some comment 1',
+      comment_timestamp: twoDaysAgo,
+      submission_id: 1,
+      user_id: '53d25d5f-a033-40b3-a253-84172a514973'
+    },
+    {
+      comment_id: '066c875c-248c-4c54-8e29-fd1af2579877',
+      comment_text: 'some comment 2',
+      comment_timestamp: now,
+      submission_id: 1,
+      user_id: 'cc5fe585-8682-4499-a04e-6255b42116c1'
+    },
+    {
+      comment_id: 'b398a65c-b219-4a52-aa54-3423e70aaecf',
+      comment_text: 'some comment 3',
+      comment_timestamp: now,
+      submission_id: 1,
+      user_id: '53d25d5f-a033-40b3-a253-84172a514973'
+    },
+    {
+      comment_id: 'cf5cb077-fb26-456c-a4c6-9efd210cfb25',
+      comment_text: 'some comment 4',
+      comment_timestamp: now,
+      submission_id: 2,
+      user_id: '53d25d5f-a033-40b3-a253-84172a514973'
+    },
+    {
+      comment_id: 'eb29bb25-e8e4-4c38-a9fe-067a5a37f659',
+      comment_text: 'some comment 5',
+      comment_timestamp: now,
+      submission_id: 2,
+      user_id: 'cc5fe585-8682-4499-a04e-6255b42116c1'
+    }
+  ];
+}
+
 function seedUsers(db, users) {
   const usersWithEncryptedPasswords = users.map((user) => ({
     ...user,
@@ -85,6 +127,10 @@ function seedUsers(db, users) {
 
 function seedSubmissions(db, submissions) {
   return db.insert(submissions).into('submission');
+}
+
+function seedComments(db, comments) {
+  return db('comments').insert(comments);
 }
 
 function truncateAllTables(db) {
@@ -112,8 +158,10 @@ module.exports = {
   coordinatesQuito,
   mockUsers,
   mockSubmissions,
+  mockComments,
   seedUsers,
   seedSubmissions,
+  seedComments,
   truncateAllTables,
   makeAuthHeader,
 };
