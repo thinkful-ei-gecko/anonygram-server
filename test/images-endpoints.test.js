@@ -232,40 +232,24 @@ describe('Images Endpoints', () => {
 
     const expectedMsg1 = 'id does not exist';
     it(`responds 400 "${expectedMsg1}" when submission doesn't exist in database`, () => {
-      const upvote = {};
-
       return supertest(app)
         .patch(`${endpointPath}/9001`)
         .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
-        .send(upvote)
         .expect(400, { error: expectedMsg1 });
     });
 
-    const expectedMsg2 = 'karma_total is required';
-    it(`responds 400 "${expectedMsg2}" when karma_total is not provided`, () => {
-      const upvote = {};
-
-      return supertest(app)
-        .patch(`${endpointPath}/1`)
-        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
-        .send(upvote)
-        .expect(400, { error: expectedMsg2 });
-    });
-
-    const expectedMsg3 = 'karma_balance is 0';
-    it(`responds 403 "${expectedMsg3}" when upvoter's karma_balance is 0`, async () => {
-      const upvote = { karma_total: 99 };
-
+    const expectedMsg2 = 'karma_balance is 0';
+    it(`responds 403 "${expectedMsg2}" when upvoter's karma_balance is 0`, async () => {
       await supertest(app)
         .patch(`${endpointPath}/1`)
         .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
-        .send(upvote);
+        .send();
 
       return await supertest(app)
         .patch(`${endpointPath}/1`)
         .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
-        .send(upvote)
-        .expect(403, { error: expectedMsg3 });
+        .send()
+        .expect(403, { error: expectedMsg2 });
     });
 
     context('Given Sufficient Karma Balance', () => {
@@ -273,34 +257,34 @@ describe('Images Endpoints', () => {
         return supertest(app)
           .patch(`${endpointPath}/1`)
           .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
-          .send({ karma_total: 13 })
+          .send()
           .expect(200)
           .then(async (res) => {
-            chai.expect(res.body.karma_total).to.eql(13);
+            chai.expect(res.body.karma_total).to.eql(21);
           });
       });
 
       it('responds 200 and correctly updates upvoter\'s karma_balance when multiple upvotes are issued', async () => {
-        // karma_balance = 4
+        // karma_balance = 4, karma_total = 21
         await supertest(app)
           .patch(`${endpointPath}/1`)
           .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
-          .send({ karma_total: 42 });
+          .send();
 
-        // karma_balance = 3
+        // karma_balance = 3, karma_total = 22
         await supertest(app)
           .patch(`${endpointPath}/1`)
           .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
-          .send({ karma_total: 99 });
+          .send();
 
-        // karma_balance = 2
+        // karma_balance = 2, karma_total = 23
         return await supertest(app)
           .patch(`${endpointPath}/1`)
           .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
-          .send({ karma_total: 13 })
+          .send()
           .expect(200)
           .then(async (res) => {
-            chai.expect(res.body.karma_total).to.eql(13);
+            chai.expect(res.body.karma_total).to.eql(23);
 
             const upvoter = await db('users')
               .select('*')
