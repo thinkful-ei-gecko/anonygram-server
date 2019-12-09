@@ -7,7 +7,7 @@ const app = require('../app');
 function resetKarma() {
   const db = app.get('db');
   db('users')
-    .update({ karma_balance: 50 })
+    .update({ karma_balance: 25 })
     .then(() => process.exit());
 }
 
