@@ -18,8 +18,10 @@ describe('Authorization Endpoints', function() {
   /*****************************************************************
     test all protected endpoints
   ******************************************************************/
-  beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
-  beforeEach('insert submissions', () => TestHelpers.seedSubmissions(db, mockSubmissions));
+  beforeEach('insert users and submissions', async () => {
+    await TestHelpers.seedUsers(db, mockUsers);
+    await TestHelpers.seedSubmissions(db, mockSubmissions);
+  });
 
   const authorizationEndpoints = [
     {
@@ -44,29 +46,31 @@ describe('Authorization Endpoints', function() {
     },
   ];
 
-  const expectedMsg1 = 'missing bearer token';
-  const expectedMsg2 = 'unauthorized request';
-  authorizationEndpoints.forEach((endpoint) => {
-    describe(endpoint.name, () => {
-      it(`responds 401 "${expectedMsg1}" when no bearer token`, () => {
-        return endpoint.method(endpoint.path).expect(401, { error: expectedMsg1 });
-      });
+  context('Given Invalid Auth', () => {
+    const expectedMsg1 = 'missing bearer token';
+    const expectedMsg2 = 'unauthorized request';
+    authorizationEndpoints.forEach((endpoint) => {
+      describe(endpoint.name, () => {
+        it(`responds 401 "${expectedMsg1}" when no bearer token`, () => {
+          return endpoint.method(endpoint.path).expect(401, { error: expectedMsg1 });
+        });
 
-      it(`responds 401 "${expectedMsg2}" when invalid JWT secret`, () => {
-        const validUser = mockUsers[0];
-        const invalidSecret = 'bad-secret';
-        return endpoint
-          .method(endpoint.path)
-          .set('Authorization', TestHelpers.makeAuthHeader(validUser, invalidSecret))
-          .expect(401, { error: expectedMsg2 });
-      });
+        it(`responds 401 "${expectedMsg2}" when invalid JWT secret`, () => {
+          const validUser = mockUsers[0];
+          const invalidSecret = 'bad-secret';
+          return endpoint
+            .method(endpoint.path)
+            .set('Authorization', TestHelpers.makeAuthHeader(validUser, invalidSecret))
+            .expect(401, { error: expectedMsg2 });
+        });
 
-      it(`responds 401 "${expectedMsg2}" when invalid payload subject`, () => {
-        const invalidUser = { username: 'user-not-existy', id: 1 };
-        return endpoint
-          .method(endpoint.path)
-          .set('Authorization', TestHelpers.makeAuthHeader(invalidUser))
-          .expect(401, { error: expectedMsg2 });
+        it(`responds 401 "${expectedMsg2}" when invalid payload subject`, () => {
+          const invalidUser = { username: 'user-not-existy', id: 1 };
+          return endpoint
+            .method(endpoint.path)
+            .set('Authorization', TestHelpers.makeAuthHeader(invalidUser))
+            .expect(401, { error: expectedMsg2 });
+        });
       });
     });
   });
