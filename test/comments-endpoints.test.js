@@ -1,7 +1,7 @@
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-describe.only('comments endpoints', () => {
+describe('comments endpoints', () => {
   let db = helpers.setupTestDB(app);
   const mockUsers = helpers.mockUsers();
   const mockSubmissions = helpers.mockSubmissions();

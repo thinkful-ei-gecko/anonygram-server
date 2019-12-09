@@ -66,8 +66,9 @@ describe('Images Endpoints', () => {
     });
 
     context('Given Valid Query Params', () => {
-      beforeEach('insert submissions', () =>
-        TestHelpers.seedSubmissions(db, mockSubmissions)
+      beforeEach(
+        'insert submissions',
+        async () => await TestHelpers.seedSubmissions(db, mockSubmissions)
       );
 
       it('responds 200 and an array of submissions within 20km of the queried lat/lon (Greenwich)', () => {
@@ -126,7 +127,7 @@ describe('Images Endpoints', () => {
           .expect(200)
           .then((res) => {
             chai.expect(res.body.length).to.eql(3);
-            
+
             chai.expect(res.body[0].image_text).to.eql('quito2');
             chai.expect(res.body[1].image_text).to.eql('greenwich');
             chai.expect(res.body[2].image_text).to.eql('quito1');
@@ -222,13 +223,99 @@ describe('Images Endpoints', () => {
     PATCH /api/images/:submission_id
   ******************************************************************/
   describe(`PATCH ${endpointPath}/:submission_id`, () => {
-    //
+    beforeEach('insert users and submissions', async () => {
+      mockUsers[0].karma_balance = 1;
+      mockUsers[1].karma_balance = 5;
+      await TestHelpers.seedUsers(db, mockUsers);
+      await TestHelpers.seedSubmissions(db, mockSubmissions);
+    });
+
+    const expectedMsg1 = 'id does not exist';
+    it(`responds 400 "${expectedMsg1}" when submission doesn't exist in database`, () => {
+      const upvote = {};
+
+      return supertest(app)
+        .patch(`${endpointPath}/9001`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .send(upvote)
+        .expect(400, { error: expectedMsg1 });
+    });
+
+    const expectedMsg2 = 'karma_total is required';
+    it(`responds 400 "${expectedMsg2}" when karma_total is not provided`, () => {
+      const upvote = {};
+
+      return supertest(app)
+        .patch(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .send(upvote)
+        .expect(400, { error: expectedMsg2 });
+    });
+
+    const expectedMsg3 = 'karma_balance is 0';
+    it(`responds 403 "${expectedMsg3}" when upvoter's karma_balance is 0`, async () => {
+      const upvote = { karma_total: 99 };
+
+      await supertest(app)
+        .patch(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .send(upvote);
+
+      return await supertest(app)
+        .patch(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .send(upvote)
+        .expect(403, { error: expectedMsg3 });
+    });
+
+    context('Given Sufficient Karma Balance', () => {
+      it('responds 200 and the updated submission JSON when an upvote is issued', async () => {
+        return supertest(app)
+          .patch(`${endpointPath}/1`)
+          .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+          .send({ karma_total: 13 })
+          .expect(200)
+          .then(async (res) => {
+            chai.expect(res.body.karma_total).to.eql(13);
+          });
+      });
+
+      it('responds 200 and correctly updates upvoter\'s karma_balance when multiple upvotes are issued', async () => {
+        // karma_balance = 4
+        await supertest(app)
+          .patch(`${endpointPath}/1`)
+          .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
+          .send({ karma_total: 42 });
+
+        // karma_balance = 3
+        await supertest(app)
+          .patch(`${endpointPath}/1`)
+          .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
+          .send({ karma_total: 99 });
+
+        // karma_balance = 2
+        return await supertest(app)
+          .patch(`${endpointPath}/1`)
+          .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
+          .send({ karma_total: 13 })
+          .expect(200)
+          .then(async (res) => {
+            chai.expect(res.body.karma_total).to.eql(13);
+
+            const upvoter = await db('users')
+              .select('*')
+              .where({ username: mockUsers[1].username })
+              .first();
+            chai.expect(upvoter.karma_balance).to.eql(2);
+          });
+      });
+    });
   });
 
   /*****************************************************************
     DELETE /api/images/:submission_id
   ******************************************************************/
   describe(`DELETE ${endpointPath}/:submission_id`, () => {
-    //
+    // unused endpoint
   });
 });
