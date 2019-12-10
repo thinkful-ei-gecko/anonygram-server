@@ -4,7 +4,7 @@ const ImagesService = require('../images/images-service');
 const CommentsService = require('./comments-service');
 const commentsRouter = express.Router();
 const jsonParser = express.json();
-const protectedWithJWT = require('../middleware/token-auth');
+const { protectedWithJWT } = require('../middleware/token-auth');
 
 const sanitizedComment = (comment) => ({
   comment_id: comment.comment_id,

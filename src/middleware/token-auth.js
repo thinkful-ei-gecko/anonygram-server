@@ -28,4 +28,23 @@ async function protectedWithJWT(req, res, next) {
   }
 }
 
-module.exports = protectedWithJWT;
+async function getUserFromToken(req, res, next) {
+  const token = req.get('Authorization');
+  if (token && token.toLowerCase().startsWith('bearer ')) {
+    try {
+      const payload = AuthService.verifyJWT(token.slice(7, token.length));
+      const user = await AuthService.getUser(req.app.get('db'), payload.sub);
+
+      if (user) {
+        req.user = user;
+      }
+      next();
+    } catch (error) {
+      next(error);
+    }
+  } else {
+    next();
+  }
+}
+
+module.exports = { protectedWithJWT, getUserFromToken };

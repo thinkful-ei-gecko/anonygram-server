@@ -1,7 +1,7 @@
 const express = require('express');
 const authRouter = express.Router();
 const AuthService = require('./auth-service');
-const protectedWithJWT = require('../middleware/token-auth');
+const { protectedWithJWT } = require('../middleware/token-auth');
 const xss = require('xss');
 
 authRouter

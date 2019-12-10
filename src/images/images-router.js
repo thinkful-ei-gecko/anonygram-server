@@ -14,7 +14,7 @@ const imagesRouter = express.Router();
 const ImagesService = require('./images-service');
 const upload = multer({ dest: 'uploads/', fileFilter: acceptImagesOnly });
 const sharp = require('sharp');
-const protectedWithJWT = require('../middleware/token-auth');
+const { protectedWithJWT, getUserFromToken } = require('../middleware/token-auth');
 const UsersService = require('../users/users-service');
 
 imagesRouter
@@ -100,61 +100,75 @@ imagesRouter
       next(e);
     }
   })
-  .post(jsonParser, upload.single('someImage'), async (req, res, next) => {
-    try {
-      // console.log(req.file);
-      let { image_text, latitude, longitude } = req.body;
-      const { path, filename } = req.file;
-      const isNSFW = await checkNSFWLikely(path);
+  .post(
+    jsonParser,
+    getUserFromToken,
+    upload.single('someImage'),
+    async (req, res, next) => {
+      try {
+        // console.log(req.file);
+        let { image_text, latitude, longitude } = req.body;
+        const { path, filename } = req.file;
+        const isNSFW = await checkNSFWLikely(path);
 
-      if (!latitude || !longitude) {
-        removeFromDisk(path);
-        return res
-          .status(400)
-          .json({ error: 'latitude and longitude parameters are required' });
-      } else if (!parseFloat(latitude) || !parseFloat(longitude)) {
-        removeFromDisk(path);
-        return res
-          .status(400)
-          .json({ error: 'latitude and longitude parameters are invalid' });
+        if (!latitude || !longitude) {
+          removeFromDisk(path);
+          return res
+            .status(400)
+            .json({ error: 'latitude and longitude parameters are required' });
+        } else if (!parseFloat(latitude) || !parseFloat(longitude)) {
+          removeFromDisk(path);
+          return res
+            .status(400)
+            .json({ error: 'latitude and longitude parameters are invalid' });
+        }
+
+        if (isNSFW) {
+          removeFromDisk(path); // remove uploaded file from disk
+          return res.status(400).json({
+            error: 'provided content does not meet community guidelines',
+          });
+        }
+
+        // we need to obfuscate coordinates so that users in homes or
+        // private places are not easily identified
+        const latArr = latitude.split('.');
+        const lonArr = longitude.split('.');
+        latArr[1] = latArr[1].substring(0, 3);
+        lonArr[1] = lonArr[1].substring(0, 3);
+        latitude = latArr.join('.');
+        longitude = lonArr.join('.');
+
+        const imageData = await sharp(path)
+          .rotate() // auto-rotate based on EXIF metadata
+          .resize({ width: 1200, withoutEnlargement: true }) // limit max width
+          .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
+          .toBuffer(); // returns a Promise<Buffer>
+
+        const image_url = await uploadToS3(imageData, path, filename, 'image/jpeg');
+        
+        const submissionData = {
+          image_url,
+          image_text: xss(image_text),
+          latitude,
+          longitude,
+        };
+
+        if (req.user) {
+          submissionData.user_id = req.user.id;
+        }
+
+        const newSubmission = await ImagesService.createSubmission(
+          req.app.get('db'),
+          submissionData
+        );
+
+        return res.status(201).json(newSubmission);
+      } catch (error) {
+        next(error);
       }
-
-      if (isNSFW) {
-        removeFromDisk(path); // remove uploaded file from disk
-        return res.status(400).json({
-          error: 'provided content does not meet community guidelines',
-        });
-      }
-
-      // we need to obfuscate coordinates so that users in homes or
-      // private places are not easily identified
-
-      const latArr = latitude.split('.');
-      const lonArr = longitude.split('.');
-      latArr[1] = latArr[1].substring(0, 3);
-      lonArr[1] = lonArr[1].substring(0, 3);
-      latitude = latArr.join('.');
-      longitude = lonArr.join('.');
-
-      const imageData = await sharp(path)
-        .rotate() // auto-rotate based on EXIF metadata
-        .resize({ width: 1200, withoutEnlargement: true }) // limit max width
-        .jpeg({ quality: 70 }) // compress to jpeg with indistinguishable quality difference
-        .toBuffer(); // returns a Promise<Buffer>
-
-      const image_url = await uploadToS3(imageData, path, filename, 'image/jpeg');
-      const newSubmission = await ImagesService.createSubmission(req.app.get('db'), {
-        image_url,
-        image_text: xss(image_text),
-        latitude,
-        longitude,
-      });
-
-      return res.status(201).json(newSubmission);
-    } catch (error) {
-      next(error);
     }
-  });
+  );
 
 imagesRouter
   .route('/:submission_id')
@@ -197,10 +211,9 @@ imagesRouter
     }
   })
   .delete(protectedWithJWT, async (req, res, next) => {
-    // TODO: enable this once submissions table is updated to store user_id
-    // if (res.submission.user_id !== req.user.id) {
-    //   return res.status(401).json({ error: 'unauthorized request' });
-    // }
+    if (res.submission.user_id !== req.user.id) {
+      return res.status(401).json({ error: 'unauthorized request' });
+    }
 
     try {
       const url = res.submission.image_url;
