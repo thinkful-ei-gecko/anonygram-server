@@ -33,4 +33,15 @@ usersRouter.route('/').post(express.json(), async (req, res, next) => {
   return res.status(201).json(newUser);
 });
 
+usersRouter.route('/:user_id').get(async (req, res, next) => {
+  let user_id = req.params.user_id;
+  const user = await UsersService.getUser(req.app.get('db'), user_id);
+
+  if (!user) {
+    return res.status(400).json({ error: 'user does not exist' });
+  }
+
+  return res.status(200).json(user);
+});
+
 module.exports = usersRouter;

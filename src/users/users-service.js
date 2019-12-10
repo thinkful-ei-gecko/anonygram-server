@@ -57,6 +57,13 @@ const UsersService = {
       .where({ username })
       .update(updateFields);
   },
+
+  getUser(db, id) {
+    return db('users')
+      .select('id', 'username', 'karma_balance')
+      .where({ id })
+      .first();
+  },
 };
 
 module.exports = UsersService;
