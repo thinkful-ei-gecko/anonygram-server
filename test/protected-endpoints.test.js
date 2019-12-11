@@ -1,7 +1,7 @@
 const app = require('../src/app');
 const TestHelpers = require('./test-helpers');
 
-describe('Authorization Endpoints', function() {
+describe('Protected Endpoints', function() {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const mockSubmissions = TestHelpers.mockSubmissions();
@@ -23,7 +23,7 @@ describe('Authorization Endpoints', function() {
     await TestHelpers.seedSubmissions(db, mockSubmissions);
   });
 
-  const authorizationEndpoints = [
+  const protectedEndpoints = [
     {
       name: 'PATCH /api/images/:submission_id',
       path: '/api/images/1',
@@ -49,7 +49,7 @@ describe('Authorization Endpoints', function() {
   context('Given Invalid Auth', () => {
     const expectedMsg1 = 'missing bearer token';
     const expectedMsg2 = 'unauthorized request';
-    authorizationEndpoints.forEach((endpoint) => {
+    protectedEndpoints.forEach((endpoint) => {
       describe(endpoint.name, () => {
         it(`responds 401 "${expectedMsg1}" when no bearer token`, () => {
           return endpoint.method(endpoint.path).expect(401, { error: expectedMsg1 });

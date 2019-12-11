@@ -2,7 +2,7 @@ const app = require('../src/app');
 const TestHelpers = require('./test-helpers');
 const bcryptjs = require('bcryptjs');
 
-describe('Registration Endpoints', () => {
+describe('Users Endpoints', () => {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const testUser = mockUsers[0];
@@ -20,7 +20,7 @@ describe('Registration Endpoints', () => {
   /*****************************************************************
     POST /api/users (User Registration)
   ******************************************************************/
-  describe(`POST ${endpointPath}`, () => {
+  describe(`POST ${endpointPath} (User Registration)`, () => {
     beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
 
     const requiredFields = ['username', 'password'];
