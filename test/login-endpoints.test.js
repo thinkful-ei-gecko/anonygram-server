@@ -65,7 +65,10 @@ describe('Login Endpoints', function() {
       return supertest(app)
         .post(endpointPath)
         .send(testLogin)
-        .expect(200, { anonygramAuthToken: AuthService.createJWT(subject, payload) });
+        .expect(200, {
+          anonygramAuthToken: AuthService.createJWT(subject, payload),
+          karma: 25,
+        });
     });
   });
 
