@@ -2,7 +2,7 @@ const app = require('../src/app');
 const TestHelpers = require('./test-helpers');
 const bcryptjs = require('bcryptjs');
 
-describe('Registration Endpoints', () => {
+describe('Users Endpoints', () => {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const testUser = mockUsers[0];
@@ -18,9 +18,9 @@ describe('Registration Endpoints', () => {
   after('disconnect from db', () => db.destroy());
 
   /*****************************************************************
-    POST /api/users
+    POST /api/users (User Registration)
   ******************************************************************/
-  describe('POST /api/users', () => {
+  describe(`POST ${endpointPath} (User Registration)`, () => {
     beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
 
     const requiredFields = ['username', 'password'];
@@ -205,6 +205,32 @@ describe('Registration Endpoints', () => {
               });
           });
       });
+    });
+  });
+
+  /*****************************************************************
+    GET /api/users/:user_id
+  ******************************************************************/
+  describe(`GET ${endpointPath}/:user_id`, () => {
+    beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
+
+    const expectedMsg1 = 'user does not exist';
+    it(`responds 400 "${expectedMsg1}" when user doesn't exist in the database`, () => {
+      return supertest(app)
+        .get(`${endpointPath}/00000000-0000-0000-0000-000000000000`)
+        .expect(400, { error: expectedMsg1 });
+    });
+
+    it('responds 200 with user data { id, username, karma_balance }', () => {
+      return supertest(app)
+        .get(`${endpointPath}/53d25d5f-a033-40b3-a253-84172a514973`)
+        .expect(200)
+        .then((res) => {
+          const expectedUserData = { ...mockUsers[0] };
+          delete expectedUserData['password'];
+          expectedUserData.karma_balance = 25;
+          chai.expect(res.body).to.eql(expectedUserData);
+        });
     });
   });
 });

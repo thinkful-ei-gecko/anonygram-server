@@ -1,7 +1,7 @@
 const app = require('../src/app');
 const helpers = require('./test-helpers');
 
-describe('comments endpoints', () => {
+describe('Comments Endpoints', () => {
   let db = helpers.setupTestDB(app);
   const mockUsers = helpers.mockUsers();
   const mockSubmissions = helpers.mockSubmissions();
@@ -48,7 +48,7 @@ describe('comments endpoints', () => {
     return supertest(app)
       .get('/api/comments/1')
       .expect(200)
-      .then(res => {
+      .then((res) => {
         chai
           .expect(res.body[0])
           .to.have.keys([
@@ -58,7 +58,7 @@ describe('comments endpoints', () => {
             'user_id',
             'comment_timestamp',
           ]);
-        const results = res.body.map(comment => {
+        const results = res.body.map((comment) => {
           delete comment.comment_timestamp;
           return comment;
         });
@@ -90,7 +90,7 @@ describe('comments endpoints', () => {
       .set('Authorization', helpers.makeAuthHeader(mockUsers[0]))
       .send(testComment)
       .expect(201)
-      .then(res => {
+      .then((res) => {
         chai
           .expect(res.body)
           .to.have.keys(
@@ -105,10 +105,10 @@ describe('comments endpoints', () => {
   });
   const postParams = {
     user_id: '53d25d5f-a033-40b3-a253-84172a514973',
-    comment_text: 'some text'
+    comment_text: 'some text',
   };
 
-  Object.keys(postParams).forEach(param => {
+  Object.keys(postParams).forEach((param) => {
     it(`POST returns 400 when ${param} not provided`, () => {
       const testBody = postParams;
       delete testBody[param];
@@ -116,19 +116,19 @@ describe('comments endpoints', () => {
         .post('/api/comments/1')
         .set('Authorization', helpers.makeAuthHeader(mockUsers[0]))
         .send(testBody)
-        .expect(400, { error: { message: `Missing '${param}' in request body` } })
+        .expect(400, { error: { message: `Missing '${param}' in request body` } });
     });
-  })
+  });
   it('POST sanitizes malicious inputs', () => {
     const maliciousBody = {
       user_id: '53d25d5f-a033-40b3-a253-84172a514973',
-      comment_text: `<img src="javascript:alert('yo')" />`
-    }
+      comment_text: `<img src="javascript:alert('yo')" />`,
+    };
 
     return supertest(app)
       .post('/api/comments/1')
       .set('Authorization', helpers.makeAuthHeader(mockUsers[0]))
       .send(maliciousBody)
-      .then(res => chai.expect(res.body.comment_text).to.eql(`<img src />`))
+      .then((res) => chai.expect(res.body.comment_text).to.eql(`<img src />`));
   });
 });

@@ -264,7 +264,7 @@ describe('Images Endpoints', () => {
           });
       });
 
-      it('responds 200 and correctly updates upvoter\'s karma_balance when multiple upvotes are issued', async () => {
+      it("responds 200 and correctly updates upvoter's karma_balance when multiple upvotes are issued", async () => {
         // karma_balance = 4, karma_total = 21
         await supertest(app)
           .patch(`${endpointPath}/1`)
@@ -300,6 +300,37 @@ describe('Images Endpoints', () => {
     DELETE /api/images/:submission_id
   ******************************************************************/
   describe(`DELETE ${endpointPath}/:submission_id`, () => {
-    // unused endpoint
+    beforeEach('insert users and submissions', async () => {
+      await TestHelpers.seedUsers(db, mockUsers);
+      await TestHelpers.seedSubmissions(db, mockSubmissions);
+    });
+
+    const expectedMsg1 = 'unauthorized request';
+    it(`responds 401 "${expectedMsg1}" when the user making the delete request doesn't match the user that created the submission`, () => {
+      return supertest(app)
+        .delete(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[1]))
+        .expect(401, { error: expectedMsg1 });
+    });
+
+    it('responds 204 and removes the database entry', async () => {
+      const submission = await db('submission')
+        .select('*')
+        .where('id', 1)
+        .first();
+      chai.expect(submission).to.not.be.undefined;
+
+      return await supertest(app)
+        .delete(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .expect(204)
+        .then(async () => {
+          const submission = await db('submission')
+            .select('*')
+            .where('id', 1)
+            .first();
+          chai.expect(submission).to.be.undefined;
+        });
+    });
   });
 });

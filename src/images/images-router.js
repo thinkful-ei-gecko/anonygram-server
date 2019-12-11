@@ -211,7 +211,7 @@ imagesRouter
     }
   })
   .delete(protectedWithJWT, async (req, res, next) => {
-    if (!res.submission.user_id && res.submission.user_id !== req.user.id) {
+    if (res.submission.user_id && res.submission.user_id !== req.user.id) {
       return res.status(401).json({ error: 'unauthorized request' });
     }
 

@@ -2,7 +2,7 @@ const app = require('../src/app');
 const AuthService = require('../src/auth/auth-service');
 const TestHelpers = require('./test-helpers');
 
-describe('Login Endpoints', function() {
+describe('Auth Endpoints', function() {
   let db = TestHelpers.setupTestDB(app);
   const mockUsers = TestHelpers.mockUsers();
   const testUser = mockUsers[0];
@@ -18,9 +18,9 @@ describe('Login Endpoints', function() {
   after('disconnect from db', () => db.destroy());
 
   /*****************************************************************
-    POST /api/auth
+    POST /api/auth (User Login)
   ******************************************************************/
-  describe(`POST ${endpointPath}`, () => {
+  describe(`POST ${endpointPath} (User Login)`, () => {
     beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
 
     const requiredFields = ['username', 'password'];
@@ -65,14 +65,17 @@ describe('Login Endpoints', function() {
       return supertest(app)
         .post(endpointPath)
         .send(testLogin)
-        .expect(200, { anonygramAuthToken: AuthService.createJWT(subject, payload) });
+        .expect(200, {
+          anonygramAuthToken: AuthService.createJWT(subject, payload),
+          karma: 25,
+        });
     });
   });
 
   /*****************************************************************
-    PUT /api/auth
+    PUT /api/auth (Token Refresh)
   ******************************************************************/
-  describe(`PUT ${endpointPath}`, () => {
+  describe(`PUT ${endpointPath} (Token Refresh)`, () => {
     beforeEach('insert users', () => TestHelpers.seedUsers(db, mockUsers));
 
     it('responds 200 and JWT auth token using secret', () => {
