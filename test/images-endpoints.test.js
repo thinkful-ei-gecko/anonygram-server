@@ -299,7 +299,7 @@ describe('Images Endpoints', () => {
   /*****************************************************************
     DELETE /api/images/:submission_id
   ******************************************************************/
-  describe.only(`DELETE ${endpointPath}/:submission_id`, () => {
+  describe(`DELETE ${endpointPath}/:submission_id`, () => {
     beforeEach('insert users and submissions', async () => {
       await TestHelpers.seedUsers(db, mockUsers);
       await TestHelpers.seedSubmissions(db, mockSubmissions);
