@@ -189,6 +189,9 @@ imagesRouter
     if (upvoter.karma_balance === 0) {
       return res.status(403).json({ error: 'karma_balance is 0' });
     }
+    if (upvoter.id === res.submission.user_id) {
+      return res.status(403).json({ error: 'submission author and upvoter are the same' })
+    }
 
     try {
       // credit submission's karma total
