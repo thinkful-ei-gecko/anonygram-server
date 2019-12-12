@@ -92,7 +92,7 @@ If the user making the image submission is registered and logged in, their `user
 
 ### ▸ `PATCH /api/images/:submission_id`
 
-This endpoint upvotes an image submission specified by `submission_id`, by incrementing the image's `karma_total` by 1. The upvoter must be a registered and logged in user with a positive `karma_balance`.
+This endpoint upvotes an image submission specified by `submission_id`, by incrementing the image's `karma_total` by 1. The upvoter must be a registered and logged in user with a positive `karma_balance`. Additionally, the submission's `user_id` must match the upvoter's `id`, otherwise the server responds with a status `403` (i.e. users may not upvote their own submissions).
 
 If no submission could be found by `submission_id`, the server responds with a status `400`.
 
