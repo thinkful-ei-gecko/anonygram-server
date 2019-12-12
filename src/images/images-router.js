@@ -146,7 +146,7 @@ imagesRouter
           .toBuffer(); // returns a Promise<Buffer>
 
         const image_url = await uploadToS3(imageData, path, filename, 'image/jpeg');
-        
+
         const submissionData = {
           image_url,
           image_text: xss(image_text),
@@ -190,7 +190,9 @@ imagesRouter
       return res.status(403).json({ error: 'karma_balance is 0' });
     }
     if (upvoter.id === res.submission.user_id) {
-      return res.status(403).json({ error: 'submission author and upvoter are the same' })
+      return res
+        .status(403)
+        .json({ error: 'submission author and upvoter are the same' });
     }
 
     try {

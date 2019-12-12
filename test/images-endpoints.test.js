@@ -241,26 +241,35 @@ describe('Images Endpoints', () => {
     const expectedMsg2 = 'karma_balance is 0';
     it(`responds 403 "${expectedMsg2}" when upvoter's karma_balance is 0`, async () => {
       await supertest(app)
-        .patch(`${endpointPath}/1`)
+        .patch(`${endpointPath}/2`)
         .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
         .send();
 
       return await supertest(app)
-        .patch(`${endpointPath}/1`)
+        .patch(`${endpointPath}/2`)
         .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
         .send()
         .expect(403, { error: expectedMsg2 });
     });
 
+    const expectedMsg3 = 'submission author and upvoter are the same';
+    it(`responds 403 "${expectedMsg3}" when submission user_id matches the upvoter's id`, () => {
+      return supertest(app)
+        .patch(`${endpointPath}/1`)
+        .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
+        .send()
+        .expect(403, { error: expectedMsg3 });
+    });
+
     context('Given Sufficient Karma Balance', () => {
       it('responds 200 and the updated submission JSON when an upvote is issued', async () => {
         return supertest(app)
-          .patch(`${endpointPath}/1`)
+          .patch(`${endpointPath}/2`)
           .set('Authorization', TestHelpers.makeAuthHeader(mockUsers[0]))
           .send()
           .expect(200)
           .then(async (res) => {
-            chai.expect(res.body.karma_total).to.eql(21);
+            chai.expect(res.body.karma_total).to.eql(6);
           });
       });
 
