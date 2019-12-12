@@ -102,6 +102,43 @@ This endpoint allows a registered and logged in user to remove an image that the
 
 If no submission could be found by `submission_id`, the server responds with a status `400`.
 
+### Comments Endpoints
+
+### ▸ `GET /api/comments/:submission_id`
+
+Returns an array of comments associated with an image submission specified by `submission_id`. Every comment contains a `user_id` of the user that posted the comment, but the displayed username is randomly generated on the client to maintain anonymity.
+
+If no submission could be found by `submission_id`, the server responds with a status `404`.
+
+**Example response**
+
+```JSON
+[
+  {
+    "comment_id": "fcf3fa7b-a1ca-4314-bbd5-5dba75ba5991",
+    "comment_text": "wow that's wild!",
+    "comment_timestamp": "2019-12-12T23:32:14.876Z",
+    "submission_id": 42,
+    "user_id": "7ad87401-dda8-48f0-8ed8-a6bc9756e53c"
+  }
+]
+```
+
+### ▸ `POST /api/comments/:submission_id`
+
+This endpoint allows a registered and logged in user to post a comment to an image submission specified by `submission_id`.
+
+If no submission could be found by `submission_id`, the server responds with a status `404`.
+
+**Example request**
+
+```JSON
+{
+  "user_id": "7ad87401-dda8-48f0-8ed8-a6bc9756e53c",
+  "comment_text": "wow that's wild!"
+}
+```
+
 ## Technology Stack
 
 ### Backend
