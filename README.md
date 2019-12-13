@@ -124,6 +124,12 @@ If no submission could be found by `submission_id`, the server responds with a s
 ]
 ```
 
+- **`comment_id`**`- string` - uuid of a comment
+- **`comment_text`**`- string` - the contents of a posted comment
+- **`comment_timestamp`**`- string` - timestamp in ISO format denoting when the comment was created
+- **`submission_id`**`- integer` - the id of an image submission that the comment was posted to
+- **`user_id`**`- string` - uuid of the user that posted the comment
+
 ### ▸ `POST /api/comments/:submission_id`
 
 This endpoint allows a registered and logged in user to post a comment to an image submission specified by `submission_id`.
@@ -138,6 +144,27 @@ If no submission could be found by `submission_id`, the server responds with a s
   "comment_text": "wow that's wild!"
 }
 ```
+
+### Users Endpoints
+
+### ▸ `GET /api/users/:user_id`
+
+Returns the data for the user specified by `user_id`.
+
+If no user could be found by `user_id`, the server responds with a status `400`.
+
+**Example response**
+
+```JSON
+{
+  "id": "7ad87401-dda8-48f0-8ed8-a6bc9756e53c",
+  "karma_balance": 25
+}
+```
+
+> _The **karma_balance** (i.e. the number of remaining upvotes that a user has) of each registered user in the Anonygram database is reset to 25 every hour, whether or not any karma was spent in that hour._
+
+> _Note that the `username` of the specified user is not included in the response so as to maintain anonymity._
 
 ## Technology Stack
 
