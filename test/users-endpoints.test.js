@@ -221,13 +221,14 @@ describe('Users Endpoints', () => {
         .expect(400, { error: expectedMsg1 });
     });
 
-    it('responds 200 with user data { id, username, karma_balance }', () => {
+    it('responds 200 with user data { id, karma_balance }', () => {
       return supertest(app)
         .get(`${endpointPath}/53d25d5f-a033-40b3-a253-84172a514973`)
         .expect(200)
         .then((res) => {
           const expectedUserData = { ...mockUsers[0] };
           delete expectedUserData['password'];
+          delete expectedUserData['username'];
           expectedUserData.karma_balance = 25;
           chai.expect(res.body).to.eql(expectedUserData);
         });

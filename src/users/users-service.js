@@ -60,7 +60,7 @@ const UsersService = {
 
   getUser(db, id) {
     return db('users')
-      .select('id', 'username', 'karma_balance')
+      .select('id', 'karma_balance')
       .where({ id })
       .first();
   },
