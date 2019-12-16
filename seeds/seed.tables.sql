@@ -6,6 +6,7 @@ TRUNCATE
   submission
   RESTART IDENTITY CASCADE;
 
+/*
 INSERT INTO submission ("id", "image_url", "karma_total", "latitude", "longitude", "create_timestamp")
 VALUES 
   (1, 'https://cdn.pixabay.com/photo/2019/11/20/17/42/vancouver-4640671_960_720.jpg', 10, '29.651979', '-82.325020', now() - INTERVAL '1 DAYS'),
@@ -30,17 +31,20 @@ VALUES
 -- because we explicitly set the id fields
 -- update the sequencer for future automatic id setting
 SELECT setval('submission_id_seq', (SELECT MAX(id) from "submission"));
+*/
 
 INSERT INTO users ("username", "password", "id")
 VALUES (
   'admin', 
-  -- 'password' using salt of 12
-  '$2a$12$WtU7R79oJnrqDqVpGlDSyuvk5ELkkrk8uOZ3ki6CkRlP.SP6p6G8y',
+  -- 'Password1!' using salt of 12
+  '$2a$12$wc5vUYU3XuCnSqaLGVzKu.zzrR.2OTKL977bJBayXpT1bnh9qahcm',
   '7ad87401-dda8-48f0-8ed8-a6bc9756e53c'
   );
 
+/*
 INSERT INTO comments ("comment_text", "submission_id", "user_id")
 VALUES 
   ('hey this is a comment!', 1, '7ad87401-dda8-48f0-8ed8-a6bc9756e53c');
+*/
 
 COMMIT;
